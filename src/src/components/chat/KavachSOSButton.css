@@ -1,0 +1,137 @@
+.kavach-sos-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border: 1px solid rgba(229, 37, 75, 0.3);
+  border-radius: 9999px;
+  background: rgba(229, 37, 75, 0.08);
+  color: #E5254B;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.kavach-sos-btn:hover {
+  background: rgba(229, 37, 75, 0.15);
+  border-color: #E5254B;
+  transform: scale(1.05);
+}
+
+/* ── Expanded Panel ── */
+.kavach-panel {
+  position: absolute;
+  top: 56px;
+  right: 20px;
+  width: 300px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(229, 37, 75, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(229, 37, 75, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  padding: 16px;
+  animation: scaleIn 200ms ease forwards;
+}
+
+.kavach-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.kavach-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #E5254B;
+}
+
+.kavach-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 150ms ease;
+}
+
+.kavach-close:hover {
+  color: var(--text-primary);
+}
+
+.kavach-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.kavach-helplines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.kavach-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 150ms ease;
+}
+
+.kavach-line:hover {
+  border-color: #10B981;
+  text-decoration: none;
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.kavach-line svg {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.kavach-line-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.kavach-line-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #E5254B;
+}
+
+.kavach-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.kavach-copy-btn:hover {
+  border-color: var(--text-muted);
+}
