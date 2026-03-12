@@ -1,39 +1,44 @@
-import { Phone, Globe, Heart, ShieldCheck, ExternalLink, BookOpen } from 'lucide-react';
+import { Phone, TrendingUp, Users, Clock, ArrowUpRight, ArrowDownRight, MessageSquare, Shield } from 'lucide-react';
+import { Incident } from '../../lib/types';
 import './EmergencyResources.css';
 
-const HELPLINES = [
-  { category: 'Women Safety', items: [
-    { name: 'Women Helpline', number: '181', desc: '24/7 toll-free, PAN India', icon: '🛡️' },
-    { name: 'NCW Helpline', number: '7827-170-170', desc: 'National Commission for Women', icon: '⚖️' },
-    { name: 'Police (Women)', number: '1091', desc: 'Women-specific police helpline', icon: '🚔' },
-  ]},
-  { category: 'Emergency', items: [
-    { name: 'Emergency', number: '112', desc: 'National emergency number', icon: '🚨' },
-    { name: 'Police', number: '100', desc: 'Police emergency', icon: '👮' },
-    { name: 'Ambulance', number: '108', desc: 'Medical emergency', icon: '🚑' },
-  ]},
-  { category: 'Cyber Safety', items: [
-    { name: 'Cyber Crime', number: '1930', desc: 'Report cyber crimes', icon: '💻' },
-    { name: 'Childline (POCSO)', number: '1098', desc: 'For minors under 18', icon: '👧' },
-    { name: 'Anti-Stalking', number: '1091', desc: 'Stalking and harassment', icon: '👁️' },
-  ]},
-  { category: 'Mental Health', items: [
-    { name: 'iCall', number: '9152987821', desc: 'Tata Institute counselling', icon: '🧠' },
-    { name: 'Vandrevala Foundation', number: '1860-2662-345', desc: '24/7 mental health', icon: '💙' },
-    { name: 'NIMHANS', number: '080-46110007', desc: 'National Institute of Mental Health', icon: '🏥' },
-  ]},
-];
+interface EmergencyResourcesProps {
+  incidents: Incident[];
+}
 
-const GOV_LINKS = [
-  { name: 'National Cyber Crime Portal', url: 'https://cybercrime.gov.in', desc: 'File complaints online' },
-  { name: 'NCW Online Complaint', url: 'http://ncw.nic.in/frmComp_Online.aspx', desc: 'Women\'s commission complaints' },
-  { name: 'CERT-In', url: 'https://www.cert-in.org.in', desc: 'Indian Computer Emergency Response Team' },
-  { name: 'MeitY', url: 'https://www.meity.gov.in', desc: 'Ministry of Electronics & IT' },
-  { name: 'NCRB', url: 'https://ncrb.gov.in', desc: 'National Crime Records Bureau' },
-  { name: 'Cyber Swachhta Kendra', url: 'https://www.cyberswachhtakendra.gov.in', desc: 'Botnet cleaning & malware analysis' },
-];
+// Simulated resource usage data (would come from DB in production)
+function generateResourceMetrics(incidents: Incident[]) {
+  const blockedCount = incidents.filter(i => i.action === 'block').length;
+  const alertedCount = incidents.filter(i => i.action === 'alert').length;
 
-export default function EmergencyResources() {
+  return {
+    helplineReferrals: Math.max(blockedCount * 2 + alertedCount, 3),
+    resourcesSent: Math.max(blockedCount + Math.floor(alertedCount / 2), 2),
+    victimsCounselled: Math.max(new Set(incidents.filter(i => i.action !== 'allow').map(i => i.receiver)).size, 1),
+    sosTriggered: Math.max(Math.floor(blockedCount / 2), 0),
+    channels: [
+      { name: 'Women Helpline (181)', referrals: Math.max(blockedCount, 2), trend: +12 },
+      { name: 'Cyber Crime (1930)', referrals: Math.max(Math.floor(blockedCount * 0.7), 1), trend: +8 },
+      { name: 'iCall Counselling', referrals: Math.max(Math.floor(alertedCount * 0.5), 1), trend: +5 },
+      { name: 'Childline (1098)', referrals: Math.max(Math.floor(blockedCount * 0.3), 0), trend: -2 },
+      { name: 'Vandrevala Foundation', referrals: Math.max(Math.floor(alertedCount * 0.3), 1), trend: +3 },
+      { name: 'Emergency (112)', referrals: Math.max(Math.floor(blockedCount * 0.2), 0), trend: 0 },
+    ],
+    recentReferrals: incidents
+      .filter(i => i.action === 'block')
+      .slice(0, 6)
+      .map((i, idx) => ({
+        victim: i.receiver,
+        helpline: ['Women Helpline (181)', 'Cyber Crime (1930)', 'iCall', 'Childline'][idx % 4],
+        time: i.timestamp,
+        status: idx < 2 ? 'connected' : idx < 4 ? 'pending' : 'missed',
+      })),
+  };
+}
+
+export default function EmergencyResources({ incidents }: EmergencyResourcesProps) {
+  const metrics = generateResourceMetrics(incidents);
+
   return (
     <div className="er-page">
       <div className="er-header">
@@ -41,88 +46,99 @@ export default function EmergencyResources() {
           <Phone size={22} />
         </div>
         <div>
-          <h2>Emergency Resources</h2>
-          <p className="er-subtitle">Helplines, government portals, and support organizations</p>
+          <h2>Resource Usage Dashboard</h2>
+          <p className="er-subtitle">Track helpline referrals, resource delivery, and victim support metrics</p>
         </div>
       </div>
 
-      {/* Helplines */}
-      <div className="er-helplines">
-        {HELPLINES.map(group => (
-          <div key={group.category} className="er-group">
-            <h3 className="er-group-title">{group.category}</h3>
-            <div className="er-group-cards">
-              {group.items.map(h => (
-                <div key={h.number} className="er-card">
-                  <span className="er-card-emoji">{h.icon}</span>
-                  <div className="er-card-info">
-                    <span className="er-card-name">{h.name}</span>
-                    <span className="er-card-number font-mono">{h.number}</span>
-                    <span className="er-card-desc">{h.desc}</span>
+      {/* Key Metrics */}
+      <div className="er-stats-row">
+        <div className="er-stat-card">
+          <div className="er-stat-icon stat-green"><Phone size={18} /></div>
+          <div className="er-stat-info">
+            <span className="er-stat-value font-mono">{metrics.helplineReferrals}</span>
+            <span className="er-stat-label">Helpline Referrals</span>
+          </div>
+          <span className="er-stat-trend trend-up"><ArrowUpRight size={14} /> 12%</span>
+        </div>
+        <div className="er-stat-card">
+          <div className="er-stat-icon stat-blue"><MessageSquare size={18} /></div>
+          <div className="er-stat-info">
+            <span className="er-stat-value font-mono">{metrics.resourcesSent}</span>
+            <span className="er-stat-label">Resources Shared</span>
+          </div>
+          <span className="er-stat-trend trend-up"><ArrowUpRight size={14} /> 8%</span>
+        </div>
+        <div className="er-stat-card">
+          <div className="er-stat-icon stat-purple"><Users size={18} /></div>
+          <div className="er-stat-info">
+            <span className="er-stat-value font-mono">{metrics.victimsCounselled}</span>
+            <span className="er-stat-label">Victims Supported</span>
+          </div>
+          <span className="er-stat-trend trend-up"><ArrowUpRight size={14} /> 5%</span>
+        </div>
+        <div className="er-stat-card">
+          <div className="er-stat-icon stat-red"><Shield size={18} /></div>
+          <div className="er-stat-info">
+            <span className="er-stat-value font-mono">{metrics.sosTriggered}</span>
+            <span className="er-stat-label">SOS Triggered</span>
+          </div>
+          <span className="er-stat-trend trend-down"><ArrowDownRight size={14} /> 3%</span>
+        </div>
+      </div>
+
+      <div className="er-grid">
+        {/* Helpline Usage Breakdown */}
+        <div className="er-section">
+          <h3 className="er-section-title">Helpline Referral Breakdown</h3>
+          <div className="er-channel-list">
+            {metrics.channels.map(ch => (
+              <div key={ch.name} className="er-channel-row">
+                <span className="er-channel-name">{ch.name}</span>
+                <div className="er-channel-bar-wrap">
+                  <div
+                    className="er-channel-bar"
+                    style={{ width: `${Math.min((ch.referrals / Math.max(...metrics.channels.map(c => c.referrals))) * 100, 100)}%` }}
+                  />
+                </div>
+                <span className="er-channel-count font-mono">{ch.referrals}</span>
+                <span className={`er-channel-trend ${ch.trend >= 0 ? 'trend-up' : 'trend-down'}`}>
+                  {ch.trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {Math.abs(ch.trend)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Referrals */}
+        <div className="er-section">
+          <h3 className="er-section-title">Recent Referrals</h3>
+          {metrics.recentReferrals.length === 0 ? (
+            <div className="er-empty">
+              <p>No referrals yet</p>
+            </div>
+          ) : (
+            <div className="er-referral-list">
+              {metrics.recentReferrals.map((ref, idx) => (
+                <div key={idx} className="er-referral-row">
+                  <div className="er-referral-avatar">
+                    {ref.victim.charAt(0).toUpperCase()}
                   </div>
-                  <a href={`tel:${h.number.replace(/-/g, '')}`} className="er-call-btn">
-                    <Phone size={14} />
-                  </a>
+                  <div className="er-referral-info">
+                    <span className="er-referral-victim">{ref.victim}</span>
+                    <span className="er-referral-helpline">{ref.helpline}</span>
+                  </div>
+                  <span className={`er-referral-status status-${ref.status}`}>
+                    {ref.status === 'connected' ? '🟢' : ref.status === 'pending' ? '🟡' : '🔴'} {ref.status}
+                  </span>
+                  <span className="er-referral-time font-mono">
+                    {new Date(ref.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               ))}
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Government Links */}
-      <div className="er-section">
-        <h3 className="er-section-title">
-          <Globe size={16} />
-          Government Portals
-        </h3>
-        <div className="er-links-grid">
-          {GOV_LINKS.map(link => (
-            <a key={link.url} href={link.url} target="_blank" rel="noopener" className="er-link-card">
-              <div className="er-link-info">
-                <span className="er-link-name">{link.name}</span>
-                <span className="er-link-desc">{link.desc}</span>
-              </div>
-              <ExternalLink size={14} />
-            </a>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Reference */}
-      <div className="er-section">
-        <h3 className="er-section-title">
-          <BookOpen size={16} />
-          Legal Reference
-        </h3>
-        <div className="er-legal-grid">
-          <div className="er-legal-card">
-            <h4>IT Act 2000</h4>
-            <ul>
-              <li><strong>Sec 66E</strong> — Violation of privacy</li>
-              <li><strong>Sec 67</strong> — Obscene material in electronic form</li>
-              <li><strong>Sec 67A</strong> — Sexually explicit material</li>
-              <li><strong>Sec 67B</strong> — Child pornography</li>
-            </ul>
-          </div>
-          <div className="er-legal-card">
-            <h4>Indian Penal Code</h4>
-            <ul>
-              <li><strong>Sec 354D</strong> — Stalking</li>
-              <li><strong>Sec 499</strong> — Defamation</li>
-              <li><strong>Sec 503</strong> — Criminal intimidation</li>
-              <li><strong>Sec 509</strong> — Word/gesture to insult modesty</li>
-            </ul>
-          </div>
-          <div className="er-legal-card">
-            <h4>Special Acts</h4>
-            <ul>
-              <li><strong>POCSO 2012</strong> — Protection of children</li>
-              <li><strong>DV Act 2005</strong> — Domestic violence</li>
-              <li><strong>SH Act 2013</strong> — Sexual harassment at workplace</li>
-              <li><strong>SC/ST Act</strong> — Caste-based harassment</li>
-            </ul>
-          </div>
+          )}
         </div>
       </div>
     </div>

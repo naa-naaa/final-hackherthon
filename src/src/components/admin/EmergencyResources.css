@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .er-header-icon {
@@ -25,78 +25,73 @@
 .er-header h2 { font-size: 22px; margin-bottom: 2px; }
 .er-subtitle { font-size: 13px; color: var(--text-muted); }
 
-/* ── Helpline Groups ── */
-.er-helplines {
+/* ── Stats Row ── */
+.er-stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.er-group-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.er-group-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.er-card {
+.er-stat-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 16px 18px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 14px;
   transition: all 150ms ease;
 }
 
-.er-card:hover { border-color: var(--text-muted); }
+.er-stat-card:hover { border-color: var(--text-muted); }
 
-.er-card-emoji { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
-
-.er-card-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.er-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-.er-card-number { font-size: 14px; font-weight: 700; color: #10B981; }
-.er-card-desc { font-size: 11px; color: var(--text-muted); }
-
-.er-call-btn {
+.er-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #10B981;
   flex-shrink: 0;
-  text-decoration: none;
-  transition: all 150ms ease;
 }
 
-.er-call-btn:hover { background: rgba(16, 185, 129, 0.2); transform: scale(1.05); }
+.stat-green { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+.stat-blue { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+.stat-purple { background: rgba(99, 102, 241, 0.1); color: #6366F1; }
+.stat-red { background: rgba(229, 37, 75, 0.1); color: #E5254B; }
 
-/* ── Sections ── */
-.er-section { margin-bottom: 28px; }
+.er-stat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-.er-section-title {
+.er-stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.er-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+.er-stat-trend {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.trend-up { color: #10B981; }
+.trend-down { color: #E5254B; }
+
+/* ── Grid ── */
+.er-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.er-section-title {
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -104,73 +99,122 @@
   margin-bottom: 14px;
 }
 
-/* ── Gov Links ── */
-.er-links-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* ── Channel Bars ── */
+.er-channel-list {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.er-link-card {
+.er-channel-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px;
+  padding: 8px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  text-decoration: none;
+  border-radius: 8px;
+}
+
+.er-channel-name {
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-primary);
-  transition: all 150ms ease;
+  width: 160px;
+  flex-shrink: 0;
 }
 
-.er-link-card:hover {
-  border-color: #6366F1;
-  text-decoration: none;
-  transform: translateY(-1px);
+.er-channel-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.er-link-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.er-link-name { font-size: 13px; font-weight: 600; }
-.er-link-desc { font-size: 11px; color: var(--text-muted); }
-.er-link-card svg { color: var(--text-muted); flex-shrink: 0; }
-
-/* ── Legal Grid ── */
-.er-legal-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+.er-channel-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6366F1, #3B82F6);
+  transition: width 300ms ease;
 }
 
-.er-legal-card {
-  padding: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+.er-channel-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  width: 30px;
+  text-align: right;
 }
 
-.er-legal-card h4 {
-  font-size: 14px;
-  margin-bottom: 10px;
-  color: #6366F1;
+.er-channel-trend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  width: 40px;
 }
 
-.er-legal-card ul {
-  list-style: none;
-  padding: 0;
+/* ── Referral List ── */
+.er-referral-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.er-legal-card li {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.4;
+.er-referral-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all 150ms ease;
 }
 
-.er-legal-card li strong {
-  color: var(--text-primary);
-  font-family: var(--font-mono);
+.er-referral-row:hover { background: var(--bg-hover); }
+
+.er-referral-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #10B981, #0891B2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.er-referral-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.er-referral-victim { font-size: 13px; font-weight: 600; }
+.er-referral-helpline { font-size: 11px; color: var(--text-muted); }
+
+.er-referral-status {
   font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.er-referral-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.er-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 13px;
 }

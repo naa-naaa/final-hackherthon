@@ -126,77 +126,80 @@
   letter-spacing: 0.5px;
 }
 
-/* ── Helpline Cards ── */
-.helpline-grid {
+/* ── Helpline Referral Analytics ── */
+.wsc-referral-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.wsc-referral-total { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.wsc-referral-label { font-size: 13px; color: var(--text-muted); }
+
+.wsc-channel-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.helpline-card {
+.wsc-channel-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 8px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  transition: all 150ms ease;
+  border-radius: 8px;
 }
 
-.helpline-card:hover {
-  border-color: var(--text-muted);
-}
-
-.helpline-emoji {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 36px;
-  text-align: center;
-}
-
-.helpline-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.helpline-name {
-  font-size: 13px;
-  font-weight: 600;
+.wsc-channel-name {
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-primary);
+  width: 150px;
+  flex-shrink: 0;
 }
 
-.helpline-number {
-  font-size: 15px;
+.wsc-channel-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.wsc-channel-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #E5254B, #F59E0B);
+  transition: width 300ms ease;
+}
+
+.wsc-channel-count {
+  font-size: 13px;
   font-weight: 700;
+  color: var(--text-primary);
+  width: 28px;
+  text-align: right;
 }
 
-.helpline-desc {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.helpline-call-btn {
+.wsc-channel-trend {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #10B981;
-  flex-shrink: 0;
-  transition: all 150ms ease;
-  text-decoration: none;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  width: 40px;
 }
 
-.helpline-call-btn:hover {
-  background: rgba(16, 185, 129, 0.2);
-  transform: scale(1.05);
-}
+.wsc-channel-trend.trend-up { color: #10B981; }
+.wsc-channel-trend.trend-down { color: #E5254B; }
 
 /* ── Action Buttons ── */
 .wsc-actions-grid {

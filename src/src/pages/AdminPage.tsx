@@ -12,6 +12,7 @@ import WomenSafetyCommand from '../components/admin/WomenSafetyCommand';
 import EmergencyResources from '../components/admin/EmergencyResources';
 import Rehabilitation from '../components/admin/Rehabilitation';
 import CybercrimeReporting from '../components/admin/CybercrimeReporting';
+import Analytics from '../components/admin/Analytics';
 import './AdminPage.css';
 
 // Chime sound (base64 encoded short beep)
@@ -86,7 +87,7 @@ export default function AdminPage() {
       case 'women':
         return <WomenSafetyCommand incidents={incidents} />;
       case 'emergency':
-        return <EmergencyResources />;
+        return <EmergencyResources incidents={incidents} />;
       case 'rehabilitation':
         return <Rehabilitation incidents={incidents} />;
       case 'cybercrime':
@@ -101,29 +102,7 @@ export default function AdminPage() {
           </div>
         );
       case 'analytics':
-        return (
-          <div className="admin-section-placeholder">
-            <h2>Analytics</h2>
-            <div className="analytics-grid">
-              <div className="analytics-card">
-                <span className="analytics-value font-mono">{incidents.length}</span>
-                <span className="analytics-label">Total Incidents</span>
-              </div>
-              <div className="analytics-card">
-                <span className="analytics-value font-mono text-red">{blockedToday}</span>
-                <span className="analytics-label">Messages Blocked</span>
-              </div>
-              <div className="analytics-card">
-                <span className="analytics-value font-mono text-amber">{activeAlerts}</span>
-                <span className="analytics-label">Alerts Issued</span>
-              </div>
-              <div className="analytics-card">
-                <span className="analytics-value font-mono text-cyan">{uniqueVictims.size}</span>
-                <span className="analytics-label">Protected Users</span>
-              </div>
-            </div>
-          </div>
-        );
+        return <Analytics incidents={incidents} />;
       default:
         return null;
     }
