@@ -2,9 +2,9 @@ import asyncio
 import numpy as np
 from typing import List, Optional
 
-from agents.text.agent_t1_toxicity import AgentT1Toxicity
-from agents.text.agent_t2_context import AgentT2Context
-from agents.text.agent_t3_emotion import AgentT3Emotion
+from orchestrators.agents.text.agent_t1_toxicity import AgentT1Toxicity
+from orchestrators.agents.text.agent_t2_context import AgentT2Context
+from orchestrators.agents.text.agent_t3_emotion import AgentT3Emotion
 from preprocessing.preprocessor import TextPreprocessor
 
 

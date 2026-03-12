@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [cooldown, setCooldown] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [draftText, setDraftText] = useState<string | undefined>(undefined);
   
   // Alert banner state
   const [alertData, setAlertData] = useState<{
@@ -212,9 +213,11 @@ export default function ChatPage() {
   }, [currentUser, alertData, strikeCount]);
 
   const handleAlertEdit = useCallback(() => {
+    const text = pendingMessageRef.current?.text || '';
+    setDraftText(text);
     setAlertData(null);
-    // The text will be restored via the return value
-    return pendingMessageRef.current?.text || '';
+    pendingMessageRef.current = null;
+    return text;
   }, []);
 
   const handleAlertCancel = useCallback(() => {
@@ -280,11 +283,14 @@ export default function ChatPage() {
                 currentUser={currentUser}
               />
               <ChatInput
-                onSend={handleSend}
+                onSend={(t, f, fn) => {
+                  setDraftText(undefined);
+                  handleSend(t, f, fn);
+                }}
                 disabled={cooldown > 0}
                 cooldown={cooldown}
                 analyzing={analyzing}
-                editText={alertData === null ? undefined : undefined}
+                editText={draftText}
               />
             </>
           ) : (

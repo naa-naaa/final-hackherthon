@@ -1,6 +1,7 @@
 import { AnalyzeRequest, AnalyzeResponse } from './types';
 
-const ANALYZE_URL = 'http://localhost:8000/analyze';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+const ANALYZE_URL = `${API_BASE_URL}/analyze`;
 const TIMEOUT_MS = 3000;
 
 export async function analyzeMessage(request: AnalyzeRequest): Promise<AnalyzeResponse | null> {

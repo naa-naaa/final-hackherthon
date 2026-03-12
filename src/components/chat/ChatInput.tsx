@@ -23,6 +23,13 @@ export default function ChatInput({
   const [fileType, setFileType] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync text with editText prop (e.g. when editing a flagged message)
+  React.useEffect(() => {
+    if (editText !== undefined) {
+      setText(editText);
+    }
+  }, [editText]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = text.trim();

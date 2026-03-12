@@ -1,0 +1,22 @@
+fastapi
+uvicorn[standard]
+asyncpg
+python-dotenv
+pydantic
+reportlab
+numpy
+python-multipart
+aiopg
+psycopg2-binary
+emoji
+langdetect
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+transformers
+sentence-transformers
+detoxify
+openai-whisper
+librosa
+pillow
+pytesseract
+nudenet

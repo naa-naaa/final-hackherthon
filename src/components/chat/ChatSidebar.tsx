@@ -16,6 +16,7 @@ export default function ChatSidebar({
   users,
   activeChat,
   onSelectChat,
+  messages,
 }: ChatSidebarProps) {
   return (
     <aside className="chat-sidebar">

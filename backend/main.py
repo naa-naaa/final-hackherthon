@@ -186,8 +186,8 @@ async def analyze_voice(
     receiver: str = Form(...),
     platform: str = Form("SafeChat"),
 ):
-    from agents.voice.agent_v1_stt import AgentV1STT
-    from agents.voice.agent_v2_acoustic import AgentV2Acoustic
+    from orchestrators.agents.voice.agent_v1_stt import AgentV1STT
+    from orchestrators.agents.voice.agent_v2_acoustic import AgentV2Acoustic
 
     audio_bytes = await audio.read()
     v1 = AgentV1STT()
@@ -226,8 +226,8 @@ async def analyze_image(
     receiver: str = Form(...),
     platform: str = Form("SafeChat"),
 ):
-    from agents.image.agent_i1_ocr import AgentI1OCR
-    from agents.image.agent_i3_nsfw import AgentI3NSFW
+    from orchestrators.agents.image.agent_i1_ocr import AgentI1OCR
+    from orchestrators.agents.image.agent_i3_nsfw import AgentI3NSFW
 
     image_bytes = await image.read()
     i1 = AgentI1OCR()
