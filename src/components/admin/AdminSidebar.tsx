@@ -1,4 +1,4 @@
-import { Radio, UserX, ShieldCheck, BarChart3, FileText, Activity } from 'lucide-react';
+import { Radio, UserX, ShieldCheck, BarChart3, FileText, Activity, ShieldAlert, Phone, RefreshCw, FileWarning } from 'lucide-react';
 import { AdminSection } from '../../lib/types';
 import './AdminSidebar.css';
 
@@ -13,6 +13,10 @@ const NAV_ITEMS: { id: AdminSection; icon: React.ReactNode; label: string }[] = 
   { id: 'predators', icon: <UserX size={18} />, label: 'Predator Profiles' },
   { id: 'victims', icon: <ShieldCheck size={18} />, label: 'Victim Protection' },
   { id: 'analytics', icon: <BarChart3 size={18} />, label: 'Analytics' },
+  { id: 'women', icon: <ShieldAlert size={18} />, label: 'Women Safety' },
+  { id: 'emergency', icon: <Phone size={18} />, label: 'Emergency Resources' },
+  { id: 'rehabilitation', icon: <RefreshCw size={18} />, label: 'Rehabilitation' },
+  { id: 'cybercrime', icon: <FileWarning size={18} />, label: 'Cybercrime Reporting' },
   { id: 'evidence', icon: <FileText size={18} />, label: 'Evidence Files' },
   { id: 'health', icon: <Activity size={18} />, label: 'System Health' },
 ];

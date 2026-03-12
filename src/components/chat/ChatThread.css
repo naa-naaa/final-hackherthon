@@ -55,6 +55,34 @@
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.08);
 }
 
+.bubble-blocked {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.08);
+  background: rgba(239, 68, 68, 0.05) !important;
+}
+
+.message-blocked-sender {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #EF4444;
+}
+
+.message-blocked-sender .blocked-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+  font-size: 13px;
+}
+
+.message-blocked-sender .blocked-label {
+  font-size: 10px;
+  color: #EF4444;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .message-text {
   font-size: 14px;
   line-height: 1.5;

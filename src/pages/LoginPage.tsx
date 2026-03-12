@@ -99,8 +99,8 @@ export default function LoginPage() {
         </form>
 
         <div className="login-footer">
-          <p>Demo accounts: user1, user2, user3</p>
-          <p>Password same as username</p>
+          <p>Demo users: arjun, priya, rahul, deepa, vikram, ananya, karthik, meera, suresh, kavitha</p>
+          <p>Password same as username · Admin: admin / admin123</p>
         </div>
       </div>
     </div>

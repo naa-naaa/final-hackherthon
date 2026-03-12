@@ -1,0 +1,220 @@
+.er-page {
+  padding: 24px 32px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.er-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.er-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10B981;
+}
+
+.er-header h2 { font-size: 22px; margin-bottom: 2px; }
+.er-subtitle { font-size: 13px; color: var(--text-muted); }
+
+/* ── Stats Row ── */
+.er-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.er-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all 150ms ease;
+}
+
+.er-stat-card:hover { border-color: var(--text-muted); }
+
+.er-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-green { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+.stat-blue { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+.stat-purple { background: rgba(99, 102, 241, 0.1); color: #6366F1; }
+.stat-red { background: rgba(229, 37, 75, 0.1); color: #E5254B; }
+
+.er-stat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.er-stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.er-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+.er-stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.trend-up { color: #10B981; }
+.trend-down { color: #E5254B; }
+
+/* ── Grid ── */
+.er-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.er-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+/* ── Channel Bars ── */
+.er-channel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.er-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.er-channel-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.er-channel-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.er-channel-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6366F1, #3B82F6);
+  transition: width 300ms ease;
+}
+
+.er-channel-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  width: 30px;
+  text-align: right;
+}
+
+.er-channel-trend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  width: 40px;
+}
+
+/* ── Referral List ── */
+.er-referral-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.er-referral-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all 150ms ease;
+}
+
+.er-referral-row:hover { background: var(--bg-hover); }
+
+.er-referral-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #10B981, #0891B2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.er-referral-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.er-referral-victim { font-size: 13px; font-weight: 600; }
+.er-referral-helpline { font-size: 11px; color: var(--text-muted); }
+
+.er-referral-status {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.er-referral-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.er-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

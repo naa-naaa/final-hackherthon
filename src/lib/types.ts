@@ -9,6 +9,15 @@ export interface Message {
   timestamp: string;
   file_url?: string;
   file_name?: string;
+  group_id?: string;
+  shadow_banned?: boolean;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  members: string[];
+  avatar_color: string;
 }
 
 export interface User {
@@ -62,4 +71,10 @@ export interface Notification {
 
 export type AlertLevel = 'GREEN' | 'YELLOW' | 'ORANGE' | 'RED';
 
-export type AdminSection = 'feed' | 'predators' | 'victims' | 'analytics' | 'evidence' | 'health';
+export type AdminSection = 'feed' | 'predators' | 'victims' | 'women' | 'analytics' | 'evidence' | 'emergency' | 'rehabilitation' | 'cybercrime' | 'health';
+
+export interface ChatTarget {
+  type: 'user' | 'group';
+  id: string;
+  name: string;
+}

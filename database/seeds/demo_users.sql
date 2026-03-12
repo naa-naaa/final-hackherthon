@@ -1,5 +1,8 @@
 -- ── DEMO USERS ────────────────────────────────────────────────
-INSERT INTO users (username) VALUES ('user1'), ('user2'), ('user3');
+INSERT INTO users (username) VALUES 
+  ('arjun'), ('priya'), ('rahul'), ('deepa'), ('vikram'),
+  ('ananya'), ('karthik'), ('meera'), ('suresh'), ('kavitha'),
+  ('admin');
 
 -- ── HELPLINE SEED DATA ────────────────────────────────────────
 INSERT INTO helpline_contacts (name, number, url, category, description) VALUES

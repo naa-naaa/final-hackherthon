@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Shield, AlertTriangle, Eye, Download, FileText } from 'lucide-react';
+import { Shield, AlertTriangle, Eye, Download, FileText, Ban } from 'lucide-react';
 import { Message } from '../../lib/types';
 import './ChatThread.css';
 
@@ -37,11 +37,11 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
     if (index < 0) return 0;
     const msg = messages[index];
     if (msg.sender === currentUser) return 0;
-    if (msg.status !== 'flagged') return 0;
+    if (msg.status !== 'flagged' && msg.status !== 'blocked') return 0;
     
     let count = 0;
     for (let i = index; i >= 0; i--) {
-      if (messages[i].sender === msg.sender && messages[i].status === 'flagged') {
+      if (messages[i].sender === msg.sender && (messages[i].status === 'flagged' || messages[i].status === 'blocked')) {
         count++;
       } else {
         break;
@@ -104,10 +104,17 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
         {messages.map((msg, index) => {
           const isMine = msg.sender === currentUser;
           const isFlagged = msg.status === 'flagged';
+          const isBlocked = msg.status === 'blocked';
+          const isShadowBanned = !!msg.shadow_banned;
           const isRevealed = revealedMessages.has(msg.id);
-          const showBlurred = !isMine && isFlagged && !isRevealed;
+          
+          // Shadow-banned messages: sender sees them as normal sent messages
+          // (receiver never sees them — filtered in store.ts)
+          const showAsNormal = isShadowBanned && isMine;
+          
+          const showBlurred = !isMine && !isShadowBanned && (isFlagged || isBlocked) && !isRevealed;
           const consecutiveFlagged = getConsecutiveFlaggedCount(index);
-          const showSupportBanner = !isMine && isFlagged && consecutiveFlagged >= 3 && 
+          const showSupportBanner = !isMine && !isShadowBanned && (isFlagged || isBlocked) && consecutiveFlagged >= 3 && 
             (index === messages.length - 1 || messages[index + 1]?.sender !== msg.sender);
 
           return (
@@ -115,13 +122,31 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
               <div
                 className={`message-row ${isMine ? 'sent' : 'received'} animate-slide-up`}
               >
-                <div className={`message-bubble ${isMine ? 'bubble-sent' : 'bubble-received'} ${isFlagged && isMine ? 'bubble-flagged' : ''} ${msg.file_url ? 'bubble-media' : ''}`}>
-                  {showBlurred ? (
+                <div className={`message-bubble ${isMine ? 'bubble-sent' : 'bubble-received'} ${isFlagged && isMine && !isShadowBanned ? 'bubble-flagged' : ''} ${isBlocked && isMine && !isShadowBanned ? 'bubble-blocked' : ''} ${msg.file_url ? 'bubble-media' : ''}`}>
+                  {/* Shadow-banned or normal message — show normally to sender */}
+                  {showAsNormal ? (
+                    <>
+                      {renderMedia(msg)}
+                      {msg.content && (!msg.file_url || msg.content !== 'Shared a file') && (
+                        <p className="message-text">{msg.content}</p>
+                      )}
+                    </>
+                  ) : isBlocked && isMine ? (
+                    <div className="message-blocked-sender">
+                      <Ban size={14} />
+                      <p className="message-text blocked-text">{msg.content}</p>
+                      <span className="blocked-label">Blocked by CyberShield</span>
+                    </div>
+                  ) : showBlurred ? (
                     <div className="message-blurred">
                       <div className="blurred-content">
                         <Shield size={16} />
                         <div>
-                          <p className="blurred-label">A message was hidden by CyberShield</p>
+                          <p className="blurred-label">
+                            {isBlocked 
+                              ? '🚫 This message was blocked by CyberShield' 
+                              : 'A message was hidden by CyberShield'}
+                          </p>
                         </div>
                         <button
                           className="reveal-btn"

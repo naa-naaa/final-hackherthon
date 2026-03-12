@@ -9,6 +9,7 @@ export interface Message {
   timestamp: string;
   file_url?: string;
   file_name?: string;
+  shadow_banned?: boolean;
 }
 
 export interface User {

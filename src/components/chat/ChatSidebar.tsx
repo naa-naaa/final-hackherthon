@@ -1,13 +1,13 @@
-import { MessageSquare } from 'lucide-react';
-import { getLastMessage } from '../../lib/store';
-import { Message } from '../../lib/types';
+import { MessageSquare, Users } from 'lucide-react';
+import { getLastMessage, getGroups } from '../../lib/store';
+import { Message, Group, ChatTarget } from '../../lib/types';
 import './ChatSidebar.css';
 
 interface ChatSidebarProps {
   currentUser: string;
   users: string[];
-  activeChat: string | null;
-  onSelectChat: (user: string) => void;
+  activeChat: ChatTarget | null;
+  onSelectChat: (target: ChatTarget) => void;
   messages: Message[];
 }
 
@@ -18,21 +18,52 @@ export default function ChatSidebar({
   onSelectChat,
   messages,
 }: ChatSidebarProps) {
+  const groups = getGroups(currentUser);
+
   return (
     <aside className="chat-sidebar">
       <div className="sidebar-header">
         <h3>Conversations</h3>
       </div>
       <div className="sidebar-list">
+        {/* Groups */}
+        {groups.length > 0 && (
+          <>
+            <div className="sidebar-section-label">Groups</div>
+            {groups.map(group => {
+              const isActive = activeChat?.type === 'group' && activeChat.id === group.id;
+              return (
+                <button
+                  key={group.id}
+                  className={`sidebar-item ${isActive ? 'active' : ''}`}
+                  onClick={() => onSelectChat({ type: 'group', id: group.id, name: group.name })}
+                >
+                  <div className="sidebar-avatar sidebar-avatar-group" style={{ background: group.avatar_color }}>
+                    <Users size={18} />
+                  </div>
+                  <div className="sidebar-info">
+                    <div className="sidebar-name">{group.name}</div>
+                    <div className="sidebar-preview">
+                      <span className="preview-text text-muted">{group.members.length} members</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </>
+        )}
+
+        {/* Direct Messages */}
+        <div className="sidebar-section-label">Direct Messages</div>
         {users.map(user => {
           const lastMsg = getLastMessage(currentUser, user);
-          const isActive = user === activeChat;
+          const isActive = activeChat?.type === 'user' && activeChat.id === user;
           
           return (
             <button
               key={user}
               className={`sidebar-item ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectChat(user)}
+              onClick={() => onSelectChat({ type: 'user', id: user, name: user })}
             >
               <div className="sidebar-avatar">
                 {user.charAt(0).toUpperCase()}
