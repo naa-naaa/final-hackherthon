@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, getOtherUsers, getMessages, getGroupMessages, sendMessage, subscribeToMessages, createIncident, generateNotification, detectSplitMessage, getPersistedStrikes, setPersistedStrikes, getWarningCount, setWarningCount, getPersistedNotifications, persistNotifications } from '../lib/store';
-import { analyzeMessage } from '../lib/analyze';
-import { Message, AnalyzeResponse, Notification, ChatTarget } from '../lib/types';
+import { analyzeMessage, analyzeVoice } from '../lib/analyze';
+import { Message, AnalyzeResponse, VoiceAnalyzeResponse, Notification, ChatTarget } from '../lib/types';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatThread from '../components/chat/ChatThread';
 import ChatInput from '../components/chat/ChatInput';
@@ -99,19 +99,23 @@ export default function ChatPage() {
   const checkLocalHarmful = useCallback((text: string): { severity: 'severe' | 'moderate'; category: string; harm_score: number } | null => {
     const lower = text.toLowerCase().trim();
     
-    // Severe words
+    // Severe words (English + Tanglish threats)
     const severeWords = [
       'fuck', 'fck', 'fuk', 'fuq', 'f u c k',
       'motherfucker', 'mf',
       'rape', 'r4pe',
-      'kill you', 'kys', 'kill yourself',
+      'kill you', 'kys', 'kill yourself', 'will kill', 'gonna kill',
       'nigger', 'n1gger', 'nigga',
       'cunt', 'cnt',
       'slut', 'slt',
       'whore', 'whor',
+      // Tanglish threat words
+      'kolluven', 'kollu', 'koduven',  // will kill, kill
+      'adikiren', 'adichu', 'adikuven',  // will beat, beat
+      'saavkaari', 'saavakaari',  // death threat slang
     ];
     
-    // Moderate words
+    // Moderate words (English + Tanglish insults)
     const moderateWords = [
       'shit', 'sht', 'sh1t',
       'bitch', 'btch', 'b1tch',
@@ -133,6 +137,17 @@ export default function ChatPage() {
       'trash',
       'worthless',
       'pathetic',
+      // Tanglish insults
+      'loosu', 'loose',  // stupid
+      'poda', 'podi',  // screw off
+      'mokka',  // bad
+      'naaye', 'naayi', 'naai',  // dog (offensive)
+      'kazhuthai', 'kazhutha',  // donkey (insult)
+      'otha', 'oothu',  // expletive
+      'thevdiya', 'thevdia', 'thevidiya',  // offensive (women-targeted)
+      'pottai',  // prostitute
+      'sunni', 'pundai', 'koothi',  // vulgar abuses
+      'poolai', 'poolu',  // vulgar
     ];
     
     for (const word of severeWords) {
@@ -460,6 +475,179 @@ export default function ChatPage() {
     }
   }, [currentUser, activeChat, shieldOn, messages, strikeCount, cooldown, checkLocalHarmful, notifications]);
 
+  // ── Voice message handler ──
+  const handleVoiceSend = useCallback(async (audioBlob: Blob, duration: number) => {
+    if (!currentUser || !activeChat || cooldown > 0) return;
+
+    const receiver = activeChat.id;
+    const timestamp = new Date().toISOString();
+    const groupId = activeChat.type === 'group' ? activeChat.id : undefined;
+
+    // Convert blob to data URL for storage
+    const toDataUrl = (b: Blob): Promise<string> =>
+      new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result as string);
+        r.onerror = rej;
+        r.readAsDataURL(b);
+      });
+    const audioDataUrl = await toDataUrl(audioBlob);
+
+    if (!shieldOn) {
+      // Shield off → send voice message directly
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: '[Voice message]',
+        status: 'sent',
+        harm_score: null,
+        category: null,
+        timestamp,
+        group_id: groupId,
+        audio_url: audioDataUrl,
+        audio_duration: duration,
+      });
+      return;
+    }
+
+    // Shield on → analyze voice via backend
+    setAnalyzing(true);
+    setShieldOffline(false);
+
+    const response = await analyzeVoice(audioBlob, currentUser, receiver);
+    setAnalyzing(false);
+
+    if (!response) {
+      setShieldOffline(true);
+      setTimeout(() => setShieldOffline(false), 5000);
+      // API failed — do NOT send unscreened, hold the message
+      return;
+    }
+
+    const transcript = response.transcript || '[Voice message]';
+
+    // Double-check transcript against local harmful words as safety net
+    const localResult = checkLocalHarmful(transcript);
+    const effectiveAction =
+      localResult && response.action === 'allow'
+        ? (localResult.severity === 'severe' ? 'block' : 'alert')
+        : response.action;
+    const effectiveScore = Math.max(response.harm_score, localResult?.harm_score ?? 0);
+    const effectiveCategory = effectiveAction !== response.action
+      ? localResult!.category
+      : response.category;
+
+    await createIncident({
+      sender: currentUser,
+      receiver,
+      content: `[Voice] ${transcript}`,
+      action: effectiveAction,
+      harm_score: effectiveScore,
+      category: effectiveCategory,
+      agent_t1: response.agent_scores?.v1_stt ?? null,
+      agent_t2: response.agent_scores?.v2_acoustic ?? null,
+      agent_t3: response.agent_scores?.v3_emotion ?? null,
+      timestamp,
+    });
+
+    if (effectiveAction === 'allow') {
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: transcript,
+        status: 'sent',
+        harm_score: effectiveScore,
+        category: effectiveCategory,
+        timestamp,
+        group_id: groupId,
+        audio_url: audioDataUrl,
+        audio_duration: duration,
+      });
+    } else if (effectiveAction === 'alert') {
+      const warnings = getWarningCount(currentUser);
+      if (warnings >= 3) {
+        const newStrike = strikeCount + 1;
+        setStrikeCount(newStrike);
+        setPersistedStrikes(currentUser, newStrike);
+        setBlockData({ response: { action: 'block', harm_score: effectiveScore, category: effectiveCategory } as AnalyzeResponse, strikeNum: newStrike });
+        setCooldown(30);
+
+        await sendMessage({
+          sender: currentUser,
+          receiver,
+          content: transcript,
+          status: 'sent',
+          harm_score: effectiveScore,
+          category: effectiveCategory,
+          timestamp,
+          group_id: groupId,
+          audio_url: audioDataUrl,
+          audio_duration: duration,
+          shadow_banned: true,
+        });
+
+        const newNotifs = [
+          generateNotification('block', currentUser, receiver, effectiveCategory, newStrike),
+          ...notifications,
+        ];
+        setNotifications(newNotifs);
+        persistNotifications(newNotifs);
+      } else {
+        setWarningCount(currentUser, warnings + 1);
+        setAlertData({ response: { action: 'alert', harm_score: effectiveScore, category: effectiveCategory } as AnalyzeResponse, text: `[Voice] ${transcript}` });
+
+        // For voice alerts, still send shadow-banned so sender sees it
+        await sendMessage({
+          sender: currentUser,
+          receiver,
+          content: transcript,
+          status: 'sent',
+          harm_score: effectiveScore,
+          category: effectiveCategory,
+          timestamp,
+          group_id: groupId,
+          audio_url: audioDataUrl,
+          audio_duration: duration,
+          shadow_banned: true,
+        });
+
+        const newNotifs = [
+          generateNotification('alert', currentUser, receiver, effectiveCategory, strikeCount),
+          ...notifications,
+        ];
+        setNotifications(newNotifs);
+        persistNotifications(newNotifs);
+      }
+    } else if (effectiveAction === 'block') {
+      const newStrike = strikeCount + 1;
+      setStrikeCount(newStrike);
+      setPersistedStrikes(currentUser, newStrike);
+      setBlockData({ response: { action: 'block', harm_score: effectiveScore, category: effectiveCategory } as AnalyzeResponse, strikeNum: newStrike });
+      setCooldown(30);
+
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: transcript,
+        status: 'sent',
+        harm_score: effectiveScore,
+        category: effectiveCategory,
+        timestamp,
+        group_id: groupId,
+        audio_url: audioDataUrl,
+        audio_duration: duration,
+        shadow_banned: true,
+      });
+
+      const newNotifs = [
+        generateNotification('block', currentUser, receiver, effectiveCategory, newStrike),
+        ...notifications,
+      ];
+      setNotifications(newNotifs);
+      persistNotifications(newNotifs);
+    }
+  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful]);
+
   const handleAlertSendAnyway = useCallback(async () => {
     if (!pendingMessageRef.current || !currentUser || !alertData) return;
     
@@ -591,6 +779,7 @@ export default function ChatPage() {
                   setDraftText(undefined);
                   handleSend(t, f, fn);
                 }}
+                onSendVoice={handleVoiceSend}
                 disabled={cooldown > 0}
                 cooldown={cooldown}
                 analyzing={analyzing}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Shield, AlertTriangle, Eye, Download, FileText, Ban } from 'lucide-react';
+import { Shield, AlertTriangle, Eye, Download, FileText, Ban, Play, Pause, Mic } from 'lucide-react';
 import { Message } from '../../lib/types';
 import './ChatThread.css';
 
@@ -98,6 +98,51 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
     );
   };
 
+  const VoicePlayer = ({ src, duration }: { src: string; duration?: number }) => {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+      const el = audioRef.current;
+      if (!el) return;
+      const onTime = () => {
+        setElapsed(Math.floor(el.currentTime));
+        setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0);
+      };
+      const onEnded = () => { setPlaying(false); setProgress(0); setElapsed(0); };
+      el.addEventListener('timeupdate', onTime);
+      el.addEventListener('ended', onEnded);
+      return () => { el.removeEventListener('timeupdate', onTime); el.removeEventListener('ended', onEnded); };
+    }, []);
+
+    const toggle = () => {
+      const el = audioRef.current;
+      if (!el) return;
+      if (playing) { el.pause(); } else { el.play(); }
+      setPlaying(!playing);
+    };
+
+    const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+    return (
+      <div className="voice-player">
+        <audio ref={audioRef} src={src} preload="metadata" />
+        <button type="button" className="voice-play-btn" onClick={toggle}>
+          {playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+        </button>
+        <div className="voice-track">
+          <div className="voice-track-fill" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="voice-duration font-mono">
+          {playing || elapsed > 0 ? fmt(elapsed) : fmt(duration || 0)}
+        </span>
+        <Mic size={12} className="voice-icon" />
+      </div>
+    );
+  };
+
   return (
     <div className="chat-thread">
       <div className="thread-messages">
@@ -126,8 +171,9 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
                   {/* Shadow-banned or normal message — show normally to sender */}
                   {showAsNormal ? (
                     <>
+                      {msg.audio_url && <VoicePlayer src={msg.audio_url} duration={msg.audio_duration} />}
                       {renderMedia(msg)}
-                      {msg.content && (!msg.file_url || msg.content !== 'Shared a file') && (
+                      {msg.content && !msg.audio_url && (!msg.file_url || msg.content !== 'Shared a file') && (
                         <p className="message-text">{msg.content}</p>
                       )}
                     </>
@@ -159,8 +205,9 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
                     </div>
                   ) : (
                     <>
+                      {msg.audio_url && <VoicePlayer src={msg.audio_url} duration={msg.audio_duration} />}
                       {renderMedia(msg)}
-                      {msg.content && (!msg.file_url || msg.content !== 'Shared a file') && (
+                      {msg.content && !msg.audio_url && (!msg.file_url || msg.content !== 'Shared a file') && (
                         <p className="message-text">{msg.content}</p>
                       )}
                       {isFlagged && isMine && (

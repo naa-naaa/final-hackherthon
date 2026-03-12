@@ -48,10 +48,13 @@ class TextPreprocessor:
             text = result["translated_text"]
             transformations.append(f"translated_from_{language}")
 
-        # Step 4 — Tanglish: romanized → native script → translate
+        # Step 4 — Tanglish: try IndicXlit romanized→script, then translate to English.
+        # When IndicXlit is unavailable the romanized text comes back unchanged;
+        # Google Translate with source='auto' handles romanized Tamil/Tanglish well.
         elif lang_info.get("needs_tanglish_norm"):
             script_text = self.tanglish.romanized_to_script(text, lang_code="ta")
-            result = self.translator.translate(script_text, source_lang="tamil")
+            # Use "auto" so Google detects correctly whether we got native script or Latin
+            result = self.translator.translate(script_text, source_lang="auto")
             text = result["translated_text"]
             transformations.append("tanglish_via_xlit_translation")
             preprocessing_boost += 0.02  # small boost for slang-heavy content

@@ -17,12 +17,28 @@ class LanguageDetector:
     MALAYALAM_PATTERN = re.compile(r"[\u0D00-\u0D7F]")
 
     TANGLISH_MARKERS = {
-        "machi", "machan", "da", "di", "dei", "enna", "yenna",
-        "seri", "po", "va", "vaa", "illa", "illaya", "avan",
-        "aval", "nee", "naan", "sollu", "paru", "paaru",
+        # Conversational / address
+        "machi", "machan", "da", "di", "dei", "daa", "dii",
+        "enna", "yenna", "ennada", "ennadi",
+        "seri", "po", "va", "vaa", "illa", "illaya",
+        "avan", "aval", "nee", "naan", "yaar", "yaaru",
+        "sollu", "paru", "paaru",
+        # Common verbs
         "saptiya", "sapdiya", "saptu", "vantiya", "vandiya",
-        "ennada", "ennadi", "loosu", "poda", "podi",
-        "mokka", "vera", "yaar", "yaaru", "dei", "naaye",
+        # Insults & abuse triggers
+        "loosu", "poda", "podi", "mokka", "vera",
+        "naaye", "naayi", "naai",          # dog (offensive)
+        "kazhuthai", "kazhutha",            # donkey (insult)
+        "otha", "oothu",                    # expletive
+        "thevdiya", "thevdia", "thevidiya", # offensive (women)
+        "pottai",                           # offensive
+        "sunni", "pundai", "koothi",        # vulgar abuses
+        "saava", "saavkaari", "saavakaari", # death-threat slang
+        "poolai", "poolu",                  # vulgar
+        # Threatening verbs
+        "adikiren", "adichu", "adikuven",   # will hit/beat
+        "kolluven", "kollu",                # will kill
+        "mokkai", "mokkapu",
     }
 
     def detect_script(self, text: str):

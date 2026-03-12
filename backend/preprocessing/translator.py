@@ -1,31 +1,69 @@
+# ISO 639-1 codes for Indian languages supported by Google Translate
+_LANG_CODE_MAP = {
+    "tamil": "ta",
+    "tamil_script": "ta",
+    "hindi": "hi",
+    "hindi_script": "hi",
+    "telugu": "te",
+    "telugu_script": "te",
+    "kannada": "kn",
+    "kannada_script": "kn",
+    "malayalam": "ml",
+    "malayalam_script": "ml",
+    "bengali": "bn",
+    "punjabi": "pa",
+    "marathi": "mr",
+    "tanglish": "auto",
+    "auto": "auto",
+    "english": "en",
+    "en": "en",
+    "unknown": "auto",
+}
+
+
 class IndianLanguageTranslator:
     """
-    Translates Indian languages (Tamil, Hindi, etc.) to English.
-    Uses IndicTrans2 or similar libraries.
+    Translates Indian languages (Tamil, Hindi, Tanglish, etc.) to English.
+    Uses deep-translator (Google Translate backend) — no API key required.
     """
 
     def __init__(self):
         print("[Translator] Initializing...")
-        self.model = None
-        # Placeholder for actual model loading logic
-        # For now, we will return a mock response to avoid breaking the pipeline
-        print("[Translator] Ready (Mock Mode)")
+        try:
+            from deep_translator import GoogleTranslator as _GT
+            # warm-up call to verify connectivity
+            _GT(source="auto", target="en").translate("test")
+            self._GT = _GT
+            self.available = True
+            print("[Translator] Ready (deep_translator / Google Translate)")
+        except Exception as e:
+            print(f"[Translator] deep_translator unavailable ({e}). Mock mode.")
+            self._GT = None
+            self.available = False
 
-    def translate(self, text: str, source_lang: str) -> dict:
+    def translate(self, text: str, source_lang: str = "auto") -> dict:
         """
-        Translates text from source_lang to English.
+        Translate text to English.  source_lang can be a language name or ISO code.
+        Returns original text on failure so the pipeline never crashes.
         """
-        # This is a placeholder. In a real system, you'd use a model like IndicTrans2.
-        # For the demo, if we don't have the model, we just return the text.
-        # In a real scenario, you'd integrate with an API or a local model.
-        print(f"[Translator] Translating from {source_lang}: {text[:50]}...")
-        
-        # MOCK TRANSLATION LOGIC
-        # If the text is in native script, we should definitely try to translate.
-        # For now, let's just return the same text as "translated" to keep the pipeline alive.
-        
-        return {
-            "translated_text": text,
-            "source_lang": source_lang,
-            "target_lang": "english"
-        }
+        if not text or not text.strip():
+            return {"translated_text": text, "source_lang": source_lang, "target_lang": "english"}
+
+        code = _LANG_CODE_MAP.get(source_lang.lower(), "auto")
+
+        # Already English — skip network call
+        if code == "en":
+            return {"translated_text": text, "source_lang": source_lang, "target_lang": "english"}
+
+        if not self.available:
+            print(f"[Translator] Mock ({source_lang}): {text[:50]}")
+            return {"translated_text": text, "source_lang": source_lang, "target_lang": "english"}
+
+        try:
+            translated = self._GT(source=code, target="en").translate(text)
+            translated = translated or text
+            print(f"[Translator] {source_lang} → EN: '{text[:40]}' → '{translated[:40]}'")
+            return {"translated_text": translated, "source_lang": source_lang, "target_lang": "english"}
+        except Exception as e:
+            print(f"[Translator] Translation error ({source_lang}): {e}")
+            return {"translated_text": text, "source_lang": source_lang, "target_lang": "english"}

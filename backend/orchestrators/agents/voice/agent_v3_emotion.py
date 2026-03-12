@@ -2,7 +2,25 @@ import torch
 from transformers import Wav2Vec2ForSequenceClassification, Wav2Vec2FeatureExtractor
 import numpy as np
 import tempfile
+import subprocess
 import os
+
+
+def _to_wav(audio_bytes: bytes) -> str:
+    """Convert any audio format (webm/opus/etc.) to 16kHz mono WAV via ffmpeg."""
+    in_path = tempfile.mktemp(suffix=".webm")
+    out_path = tempfile.mktemp(suffix=".wav")
+    try:
+        with open(in_path, "wb") as f:
+            f.write(audio_bytes)
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", in_path, "-ar", "16000", "-ac", "1", out_path],
+            capture_output=True, timeout=15,
+        )
+    finally:
+        if os.path.exists(in_path):
+            os.unlink(in_path)
+    return out_path
 
 
 class AgentV3VoiceEmotion:
@@ -48,11 +66,8 @@ class AgentV3VoiceEmotion:
             }
         try:
             import librosa
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                f.write(audio_bytes)
-                tmp_path = f.name
+            tmp_path = _to_wav(audio_bytes)
             y, sr = librosa.load(tmp_path, sr=16000)
-            os.unlink(tmp_path)
 
             inputs = self.feature_extractor(y, sampling_rate=16000, return_tensors="pt", padding=True)
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -80,6 +95,7 @@ class AgentV3VoiceEmotion:
                 "explanation": f"Dominant emotion: {dominant}, distress: {distress_score:.2f}",
             }
         except Exception as e:
+            print(f"[V3] Emotion error: {e}")
             return {
                 "agent": "V3_voice_emotion",
                 "score": 0.0,
@@ -89,3 +105,6 @@ class AgentV3VoiceEmotion:
                 "distress_score": 0.0,
                 "error": str(e),
             }
+        finally:
+            if 'tmp_path' in locals() and os.path.exists(tmp_path):
+                os.unlink(tmp_path)

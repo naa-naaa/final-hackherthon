@@ -193,3 +193,109 @@
   text-overflow: ellipsis;
 }
 
+/* ── Voice recording ── */
+.voice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+  flex-shrink: 0;
+}
+
+.voice-btn:hover:not(:disabled) {
+  color: #E5254B;
+  background: rgba(229, 37, 75, 0.08);
+}
+
+.voice-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.voice-cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+}
+
+.voice-cancel-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.recording-indicator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 40px;
+  background: rgba(229, 37, 75, 0.06);
+  border: 1px solid rgba(229, 37, 75, 0.2);
+  border-radius: 9999px;
+}
+
+.recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E5254B;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.recording-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #E5254B;
+  min-width: 42px;
+}
+
+.recording-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.voice-stop-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #E5254B;
+  color: #FFFFFF;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+  box-shadow: 0 2px 8px rgba(229, 37, 75, 0.3);
+}
+
+.voice-stop-btn:hover {
+  background: #c91e3f;
+  box-shadow: 0 4px 14px rgba(229, 37, 75, 0.4);
+  transform: scale(1.05);
+}
+

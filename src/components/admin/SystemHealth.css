@@ -81,3 +81,101 @@
   font-weight: 600;
   color: #10B981;
 }
+
+/* ── Title Row ── */
+.sh-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.sh-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.sh-refresh-btn:hover { color: #10B981; border-color: #10B981; }
+.sh-refresh-btn .spin { animation: spin-anim 0.8s linear infinite; }
+@keyframes spin-anim { to { transform: rotate(360deg); } }
+
+/* ── Error Banner ── */
+.sh-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #F59E0B;
+}
+
+/* ── Security Events ── */
+.sh-events {
+  margin-top: 28px;
+}
+
+.sh-events-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.sh-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sh-event-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  border-left: 3px solid var(--border);
+  font-size: 13px;
+}
+
+.sh-event-row.severity-high { border-left-color: #E5254B; }
+.sh-event-row.severity-medium { border-left-color: #F59E0B; }
+.sh-event-row.severity-low { border-left-color: #10B981; }
+
+.sh-event-type {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+}
+
+.sh-event-detail {
+  flex: 1;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-event-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}

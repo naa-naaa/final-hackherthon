@@ -279,3 +279,75 @@
   background: rgba(0, 0, 0, 0.12);
 }
 
+/* ── Voice player ── */
+.voice-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.voice-play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 150ms ease;
+}
+
+.bubble-received .voice-play-btn {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.voice-play-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.bubble-received .voice-play-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.voice-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.bubble-received .voice-track {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.voice-track-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  transition: width 300ms linear;
+}
+
+.bubble-received .voice-track-fill {
+  background: #3B82F6;
+}
+
+.voice-duration {
+  font-size: 11px;
+  opacity: 0.8;
+  min-width: 36px;
+  text-align: right;
+}
+
+.voice-icon {
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+

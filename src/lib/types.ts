@@ -11,6 +11,8 @@ export interface Message {
   file_name?: string;
   group_id?: string;
   shadow_banned?: boolean;
+  audio_url?: string;
+  audio_duration?: number;
 }
 
 export interface Group {
@@ -59,6 +61,21 @@ export interface AnalyzeResponse {
     t2_context: number;
     t3_emotion: number;
   };
+}
+
+export interface VoiceAnalyzeResponse {
+  action: 'allow' | 'alert' | 'block';
+  harm_score: number;
+  category: string;
+  severity: string;
+  transcript: string;
+  explanation: string;
+  strike_count: number;
+  incident_id: string;
+  agent_scores?: Record<string, number>;
+  acoustic_flags?: Record<string, number>;
+  voice_emotion?: Record<string, unknown>;
+  women_risk_flag?: boolean;
 }
 
 export interface Notification {
