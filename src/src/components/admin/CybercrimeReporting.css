@@ -1,0 +1,215 @@
+.ccr-page {
+  padding: 24px 32px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.ccr-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.ccr-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(229, 37, 75, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E5254B;
+}
+
+.ccr-header h2 { font-size: 22px; margin-bottom: 2px; }
+.ccr-subtitle { font-size: 13px; color: var(--text-muted); }
+
+/* ── Grid ── */
+.ccr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ccr-card {
+  padding: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.ccr-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.ccr-card-header h3 { font-size: 16px; }
+
+.ccr-card-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* Steps */
+.ccr-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ccr-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.ccr-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6366F1;
+  flex-shrink: 0;
+}
+
+.ccr-portal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 150ms ease;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.ccr-portal-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+  text-decoration: none;
+}
+
+/* Generate Card */
+.ccr-generate-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ccr-gen-stat {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ccr-gen-value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.ccr-gen-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+
+.ccr-generate-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ccr-gen-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.ccr-download {
+  background: rgba(229, 37, 75, 0.08);
+  border-color: rgba(229, 37, 75, 0.2);
+  color: #E5254B;
+}
+
+.ccr-download:hover { background: rgba(229, 37, 75, 0.15); }
+
+.ccr-copy {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.ccr-copy:hover { border-color: var(--text-muted); }
+
+/* ── Section ── */
+.ccr-section { margin-bottom: 20px; }
+
+.ccr-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+/* ── IPC Cards ── */
+.ccr-ipc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.ccr-ipc-card {
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 150ms ease;
+}
+
+.ccr-ipc-card:hover { border-color: var(--text-muted); }
+
+.ccr-ipc-section { font-size: 13px; font-weight: 700; color: #E5254B; }
+.ccr-ipc-name { font-size: 13px; color: var(--text-primary); }
+.ccr-ipc-penalty { font-size: 11px; color: var(--text-muted); }
+
+.ccr-ipc-empty {
+  grid-column: 1 / -1;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}

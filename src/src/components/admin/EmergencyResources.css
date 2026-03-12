@@ -1,0 +1,176 @@
+.er-page {
+  padding: 24px 32px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.er-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.er-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10B981;
+}
+
+.er-header h2 { font-size: 22px; margin-bottom: 2px; }
+.er-subtitle { font-size: 13px; color: var(--text-muted); }
+
+/* ── Helpline Groups ── */
+.er-helplines {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.er-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.er-group-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.er-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 150ms ease;
+}
+
+.er-card:hover { border-color: var(--text-muted); }
+
+.er-card-emoji { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+
+.er-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.er-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.er-card-number { font-size: 14px; font-weight: 700; color: #10B981; }
+.er-card-desc { font-size: 11px; color: var(--text-muted); }
+
+.er-call-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.er-call-btn:hover { background: rgba(16, 185, 129, 0.2); transform: scale(1.05); }
+
+/* ── Sections ── */
+.er-section { margin-bottom: 28px; }
+
+.er-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+/* ── Gov Links ── */
+.er-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.er-link-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 150ms ease;
+}
+
+.er-link-card:hover {
+  border-color: #6366F1;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.er-link-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.er-link-name { font-size: 13px; font-weight: 600; }
+.er-link-desc { font-size: 11px; color: var(--text-muted); }
+.er-link-card svg { color: var(--text-muted); flex-shrink: 0; }
+
+/* ── Legal Grid ── */
+.er-legal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.er-legal-card {
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.er-legal-card h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #6366F1;
+}
+
+.er-legal-card ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.er-legal-card li {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.er-legal-card li strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}

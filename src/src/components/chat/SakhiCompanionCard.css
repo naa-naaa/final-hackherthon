@@ -1,0 +1,188 @@
+.sakhi-card {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(8, 145, 178, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  padding: 18px;
+  z-index: 40;
+}
+
+.sakhi-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.sakhi-close:hover {
+  color: var(--text-primary);
+}
+
+.sakhi-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sakhi-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(99, 102, 241, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0891B2;
+  flex-shrink: 0;
+}
+
+.sakhi-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sakhi-sub {
+  font-size: 12px;
+  color: #0891B2;
+}
+
+.sakhi-message {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.sakhi-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sakhi-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 150ms ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.sakhi-call {
+  background: rgba(229, 37, 75, 0.08);
+  border: 1px solid rgba(229, 37, 75, 0.2);
+  color: #E5254B;
+}
+
+.sakhi-call:hover {
+  background: rgba(229, 37, 75, 0.15);
+  text-decoration: none;
+}
+
+.sakhi-report {
+  background: rgba(8, 145, 178, 0.08);
+  border: 1px solid rgba(8, 145, 178, 0.2);
+  color: #0891B2;
+}
+
+.sakhi-report:hover {
+  background: rgba(8, 145, 178, 0.15);
+  text-decoration: none;
+}
+
+.sakhi-tips {
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.sakhi-tips-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.sakhi-tips ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sakhi-tips li {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-left: 14px;
+  position: relative;
+}
+
+.sakhi-tips li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #0891B2;
+}
+
+.sakhi-minimize {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.sakhi-minimize:hover {
+  color: var(--text-primary);
+}
+
+/* ── Minimized state ── */
+.sakhi-minimized {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(8, 145, 178, 0.2);
+  border-radius: 9999px;
+  color: #0891B2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 40;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 150ms ease;
+}
+
+.sakhi-minimized:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
