@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, getOtherUsers, getMessages, getGroupMessages, sendMessage, subscribeToMessages, createIncident, generateNotification, detectSplitMessage, getPersistedStrikes, setPersistedStrikes, getWarningCount, setWarningCount, getPersistedNotifications, persistNotifications } from '../lib/store';
+import { getCurrentUser, getOtherUsers, getMessages, getGroupMessages, sendMessage, subscribeToMessages, createIncident, generateNotification, detectSplitMessage, getPersistedStrikes, setPersistedStrikes, getWarningCount, setWarningCount, getPersistedNotifications, persistNotifications, getUserRestriction, restrictUserForHours, publishRestrictedAttempt, subscribeToRestrictedAttempts, getHarmfulSentCount, setHarmfulSentCount } from '../lib/store';
 import { analyzeMessage, analyzeVoice } from '../lib/analyze';
 import { analyzeImage } from '../lib/analyzeImage';
 import { Message, AnalyzeResponse, VoiceAnalyzeResponse, ImageAnalyzeResponse, Notification, ChatTarget } from '../lib/types';
@@ -81,6 +81,38 @@ export default function ChatPage() {
     });
     return unsub;
   }, [currentUser, activeChat]);
+
+  const checkRestrictionForCurrentChat = useCallback((): boolean => {
+    if (!currentUser || !activeChat) return false;
+
+    const myRestriction = getUserRestriction(currentUser);
+    if (myRestriction.restricted) {
+      if (activeChat.type === 'user') {
+        publishRestrictedAttempt(currentUser, activeChat.id);
+      }
+      window.alert("Your account is restricted and you can't send messages for 24 hours.");
+      return false;
+    }
+
+    if (activeChat.type === 'user') {
+      const receiverRestriction = getUserRestriction(activeChat.id);
+      if (receiverRestriction.restricted) {
+        window.alert('This account is restricted and cannot send or receive messages for 24 hours.');
+        return false;
+      }
+    }
+
+    return true;
+  }, [currentUser, activeChat]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsub = subscribeToRestrictedAttempts(({ blockedUser, victimUser }) => {
+      if (victimUser !== currentUser) return;
+      window.alert(`${blockedUser} is blocked due to continued harassment and cannot message you.`);
+    });
+    return unsub;
+  }, [currentUser]);
 
   // Cooldown timer
   useEffect(() => {
@@ -173,6 +205,8 @@ export default function ChatPage() {
     const receiver = activeChat.id;
     const timestamp = new Date().toISOString();
     const groupId = activeChat.type === 'group' ? activeChat.id : undefined;
+
+    if (!checkRestrictionForCurrentChat()) return;
     
     // ── Split-message detection (always active) ──
     const splitDetection = detectSplitMessage(currentUser, receiver, text);
@@ -213,61 +247,6 @@ export default function ChatPage() {
       const localResult = checkLocalHarmful(text);
       
       if (localResult) {
-        const warnings = getWarningCount(currentUser);
-        // Threshold: after 3 warnings, auto-block with shadow ban
-        const shouldBlock = warnings >= 3;
-        
-        if (shouldBlock) {
-          // User has been warned enough — shadow ban the message
-          const newStrike = strikeCount + 1;
-          setStrikeCount(newStrike);
-          setPersistedStrikes(currentUser, newStrike);
-          
-          setBlockData({
-            response: {
-              action: 'block',
-              harm_score: localResult.harm_score,
-              category: localResult.category,
-            },
-            strikeNum: newStrike,
-          });
-          setCooldown(30);
-          
-          // Shadow ban: sender sees 'sent', receiver never sees the message
-          await sendMessage({
-            sender: currentUser,
-            receiver,
-            content: text,
-            status: 'sent',
-            harm_score: localResult.harm_score,
-            category: localResult.category,
-            timestamp,
-            group_id: groupId,
-            shadow_banned: true,
-          });
-          
-          await createIncident({
-            sender: currentUser,
-            receiver,
-            content: text,
-            action: 'block',
-            harm_score: localResult.harm_score,
-            category: localResult.category,
-            agent_t1: localResult.harm_score,
-            agent_t2: localResult.harm_score * 0.9,
-            agent_t3: localResult.harm_score * 0.8,
-            timestamp,
-          });
-          
-          const newNotifs = [
-            generateNotification('block', currentUser, receiver, localResult.category, newStrike),
-            ...notifications,
-          ];
-          setNotifications(newNotifs);
-          persistNotifications(newNotifs);
-          return;
-        }
-        
         // Warning phase: alert the user to revise their text
         await createIncident({
           sender: currentUser,
@@ -293,6 +272,7 @@ export default function ChatPage() {
         });
         
         // Increment warning count
+        const warnings = getWarningCount(currentUser);
         setWarningCount(currentUser, warnings + 1);
         
         const newNotifs = [
@@ -337,6 +317,7 @@ export default function ChatPage() {
           file_name: fileName,
           group_id: groupId,
         });
+        setHarmfulSentCount(currentUser, 0);
         return;
       }
 
@@ -354,6 +335,7 @@ export default function ChatPage() {
       });
 
       if (response.action === 'allow') {
+        setHarmfulSentCount(currentUser, 0);
         await sendMessage({
           sender: currentUser,
           receiver,
@@ -368,50 +350,23 @@ export default function ChatPage() {
         });
       } else if (response.action === 'alert') {
         const warnings = getWarningCount(currentUser);
-        if (warnings >= 3) {
-          // Already warned enough — shadow ban
-          const newStrike = strikeCount + 1;
-          setStrikeCount(newStrike);
-          setPersistedStrikes(currentUser, newStrike);
-          setBlockData({ response: { ...response, action: 'block' }, strikeNum: newStrike });
-          setCooldown(30);
-          
-          await sendMessage({
-            sender: currentUser,
-            receiver,
-            content: text,
-            status: 'sent',
-            harm_score: response.harm_score,
-            category: response.category,
-            timestamp,
-            group_id: groupId,
-            shadow_banned: true,
-          });
-          
-          const newNotifs = [
-            generateNotification('block', currentUser, receiver, response.category, newStrike),
-            ...notifications,
-          ];
-          setNotifications(newNotifs);
-          persistNotifications(newNotifs);
-        } else {
-          setWarningCount(currentUser, warnings + 1);
-          pendingMessageRef.current = { text, receiver, groupId };
-          setAlertData({ response, text });
-          
-          const newNotifs = [
-            generateNotification('alert', currentUser, receiver, response.category, strikeCount),
-            ...notifications,
-          ];
-          setNotifications(newNotifs);
-          persistNotifications(newNotifs);
-        }
+        setWarningCount(currentUser, warnings + 1);
+        pendingMessageRef.current = { text, receiver, groupId };
+        setAlertData({ response, text });
+        
+        const newNotifs = [
+          generateNotification('alert', currentUser, receiver, response.category, strikeCount),
+          ...notifications,
+        ];
+        setNotifications(newNotifs);
+        persistNotifications(newNotifs);
       } else if (response.action === 'block') {
         const newStrike = strikeCount + 1;
         setStrikeCount(newStrike);
         setPersistedStrikes(currentUser, newStrike);
         setBlockData({ response, strikeNum: newStrike });
         setCooldown(30);
+        restrictUserForHours(currentUser, 24);
         
         // Shadow ban: sender sees sent, receiver never sees it
         await sendMessage({
@@ -474,8 +429,9 @@ export default function ChatPage() {
         file_name: fileName,
         group_id: groupId,
       });
+      setHarmfulSentCount(currentUser, 0);
     }
-  }, [currentUser, activeChat, shieldOn, messages, strikeCount, cooldown, checkLocalHarmful, notifications]);
+  }, [currentUser, activeChat, shieldOn, messages, strikeCount, cooldown, checkLocalHarmful, notifications, checkRestrictionForCurrentChat]);
 
   // ── Image message handler ──
   const handleSendImage = useCallback(async (imageFile: File) => {
@@ -485,6 +441,8 @@ export default function ChatPage() {
     const timestamp = new Date().toISOString();
     const groupId = activeChat.type === 'group' ? activeChat.id : undefined;
     const threadId = activeChat.type === 'group' ? activeChat.id : `conv_${currentUser}_${receiver}`;
+
+    if (!checkRestrictionForCurrentChat()) return;
 
     if (!shieldOn) {
       // Shield off → send image directly without analysis
@@ -546,6 +504,7 @@ export default function ChatPage() {
     });
 
     if (response.action === 'allow') {
+      setHarmfulSentCount(currentUser, 0);
       await sendMessage({
         sender: currentUser,
         receiver,
@@ -567,6 +526,7 @@ export default function ChatPage() {
         setPersistedStrikes(currentUser, newStrike);
         setBlockData({ response, strikeNum: newStrike });
         setCooldown(30);
+        restrictUserForHours(currentUser, 24);
 
         await sendMessage({
           sender: currentUser,
@@ -605,6 +565,7 @@ export default function ChatPage() {
       setPersistedStrikes(currentUser, newStrike);
       setBlockData({ response, strikeNum: newStrike });
       setCooldown(30);
+      restrictUserForHours(currentUser, 24);
 
       await sendMessage({
         sender: currentUser,
@@ -625,7 +586,7 @@ export default function ChatPage() {
       setNotifications(newNotifs);
       persistNotifications(newNotifs);
     }
-  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful]);
+  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful, checkRestrictionForCurrentChat]);
 
   // ── Voice message handler ──
   const handleVoiceSend = useCallback(async (audioBlob: Blob, duration: number) => {
@@ -634,6 +595,8 @@ export default function ChatPage() {
     const receiver = activeChat.id;
     const timestamp = new Date().toISOString();
     const groupId = activeChat.type === 'group' ? activeChat.id : undefined;
+
+    if (!checkRestrictionForCurrentChat()) return;
 
     // Convert blob to data URL for storage
     const toDataUrl = (b: Blob): Promise<string> =>
@@ -703,6 +666,7 @@ export default function ChatPage() {
     });
 
     if (effectiveAction === 'allow') {
+      setHarmfulSentCount(currentUser, 0);
       await sendMessage({
         sender: currentUser,
         receiver,
@@ -723,6 +687,7 @@ export default function ChatPage() {
         setPersistedStrikes(currentUser, newStrike);
         setBlockData({ response: { action: 'block', harm_score: effectiveScore, category: effectiveCategory } as AnalyzeResponse, strikeNum: newStrike });
         setCooldown(30);
+        restrictUserForHours(currentUser, 24);
 
         await sendMessage({
           sender: currentUser,
@@ -776,6 +741,7 @@ export default function ChatPage() {
       setPersistedStrikes(currentUser, newStrike);
       setBlockData({ response: { action: 'block', harm_score: effectiveScore, category: effectiveCategory } as AnalyzeResponse, strikeNum: newStrike });
       setCooldown(30);
+      restrictUserForHours(currentUser, 24);
 
       await sendMessage({
         sender: currentUser,
@@ -798,63 +764,93 @@ export default function ChatPage() {
       setNotifications(newNotifs);
       persistNotifications(newNotifs);
     }
-  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful]);
+  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful, checkRestrictionForCurrentChat]);
 
   const handleAlertSendAnyway = useCallback(async () => {
     if (!pendingMessageRef.current || !currentUser || !alertData) return;
     
     const { text, receiver, groupId } = pendingMessageRef.current;
-    const newStrike = strikeCount + 1;
-    setStrikeCount(newStrike);
-    setPersistedStrikes(currentUser, newStrike);
-    
-    // User ignored warning → block + shadow ban
-    setBlockData({
-      response: {
+    if (!checkRestrictionForCurrentChat()) {
+      setAlertData(null);
+      pendingMessageRef.current = null;
+      return;
+    }
+
+    const nextHarmfulCount = getHarmfulSentCount(currentUser) + 1;
+    setHarmfulSentCount(currentUser, nextHarmfulCount);
+
+    const now = new Date().toISOString();
+    let newNotifs;
+
+    if (nextHarmfulCount >= 3) {
+      const newStrike = strikeCount + 1;
+      setStrikeCount(newStrike);
+      setPersistedStrikes(currentUser, newStrike);
+      setBlockData({
+        response: {
+          action: 'block',
+          harm_score: alertData.response.harm_score,
+          category: alertData.response.category,
+        },
+        strikeNum: newStrike,
+      });
+      setCooldown(30);
+      restrictUserForHours(currentUser, 24);
+
+      await createIncident({
+        sender: currentUser,
+        receiver,
+        content: text,
         action: 'block',
         harm_score: alertData.response.harm_score,
         category: alertData.response.category,
-      },
-      strikeNum: newStrike,
-    });
-    setCooldown(30);
-    
-    // Shadow ban: sender sees 'sent', receiver never sees it
-    await sendMessage({
-      sender: currentUser,
-      receiver,
-      content: text,
-      status: 'sent',
-      harm_score: alertData.response.harm_score,
-      category: alertData.response.category,
-      timestamp: new Date().toISOString(),
-      group_id: groupId,
-      shadow_banned: true,
-    });
-    
-    await createIncident({
-      sender: currentUser,
-      receiver,
-      content: text,
-      action: 'block',
-      harm_score: alertData.response.harm_score,
-      category: alertData.response.category,
-      agent_t1: alertData.response.harm_score,
-      agent_t2: alertData.response.harm_score * 0.9,
-      agent_t3: alertData.response.harm_score * 0.8,
-      timestamp: new Date().toISOString(),
-    });
-    
-    const newNotifs = [
-      generateNotification('block', currentUser, receiver, alertData.response.category, newStrike),
-      ...notifications,
-    ];
+        agent_t1: alertData.response.harm_score,
+        agent_t2: alertData.response.harm_score * 0.9,
+        agent_t3: alertData.response.harm_score * 0.8,
+        timestamp: now,
+      });
+
+      newNotifs = [
+        generateNotification('block', currentUser, receiver, alertData.response.category, newStrike),
+        ...notifications,
+      ];
+    } else {
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: text,
+        status: 'flagged',
+        harm_score: alertData.response.harm_score,
+        category: alertData.response.category,
+        timestamp: now,
+        group_id: groupId,
+      });
+
+      await createIncident({
+        sender: currentUser,
+        receiver,
+        content: text,
+        action: 'alert',
+        harm_score: alertData.response.harm_score,
+        category: alertData.response.category,
+        agent_t1: alertData.response.harm_score,
+        agent_t2: alertData.response.harm_score * 0.9,
+        agent_t3: alertData.response.harm_score * 0.8,
+        timestamp: now,
+      });
+
+      newNotifs = [
+        generateNotification('alert', currentUser, receiver, alertData.response.category, strikeCount),
+        ...notifications,
+      ];
+    }
+
     setNotifications(newNotifs);
     persistNotifications(newNotifs);
     
     setAlertData(null);
     pendingMessageRef.current = null;
-  }, [currentUser, alertData, strikeCount, notifications]);
+  }, [currentUser, alertData, strikeCount, notifications, checkRestrictionForCurrentChat]);
 
   const handleAlertEdit = useCallback(() => {
     const text = pendingMessageRef.current?.text || '';

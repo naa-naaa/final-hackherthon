@@ -1,0 +1,249 @@
+.women-safety-dropdown {
+  position: relative;
+}
+
+.women-safety-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 190px;
+  padding: 8px 12px;
+  border: 1px solid rgba(236, 72, 153, 0.22);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 38%),
+    linear-gradient(135deg, #fff1f7 0%, #ffd9eb 52%, #ffc8df 100%);
+  box-shadow: 0 12px 30px rgba(244, 114, 182, 0.18);
+  color: #8f245b;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.women-safety-trigger:hover,
+.women-safety-trigger.open {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(244, 114, 182, 0.24);
+  border-color: rgba(219, 39, 119, 0.35);
+}
+
+.women-safety-trigger-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #be185d;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.women-safety-trigger-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+  flex: 1;
+}
+
+.women-safety-trigger-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.women-safety-trigger-subtitle {
+  font-size: 11px;
+  color: #a74c77;
+}
+
+.women-safety-chevron {
+  color: #be185d;
+}
+
+.women-safety-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 390px;
+  padding: 16px;
+  max-height: calc(100vh - 92px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 24px;
+  border: 1px solid rgba(236, 72, 153, 0.18);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 35%),
+    linear-gradient(180deg, #fff7fb 0%, #ffe9f2 48%, #ffdce9 100%);
+  box-shadow: 0 24px 60px rgba(190, 24, 93, 0.18);
+  z-index: 30;
+}
+
+.women-safety-menu::-webkit-scrollbar {
+  width: 10px;
+}
+
+.women-safety-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+}
+
+.women-safety-menu::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(244, 114, 182, 0.75), rgba(219, 39, 119, 0.65));
+  border-radius: 999px;
+  border: 2px solid rgba(255, 240, 246, 0.9);
+}
+
+.women-safety-hero {
+  padding: 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 234, 244, 0.9));
+  border: 1px solid rgba(236, 72, 153, 0.16);
+  color: #7c1d4f;
+}
+
+.women-safety-hero h4 {
+  margin: 10px 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.women-safety-hero p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9d4b74;
+}
+
+.women-safety-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(244, 114, 182, 0.12);
+  color: #be185d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.women-safety-hero-incident {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #8f245b;
+  font-size: 12px;
+}
+
+.women-safety-section {
+  margin-top: 14px;
+}
+
+.women-safety-section-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #9f1239;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.women-safety-helplines,
+.women-safety-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.women-safety-helpline-card,
+.women-safety-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(236, 72, 153, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #7c1d4f;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.women-safety-helpline-card:hover,
+.women-safety-action:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 24px rgba(236, 72, 153, 0.12);
+}
+
+.helpline-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffe0ee, #ffd1e8);
+  color: #be185d;
+}
+
+.helpline-copy,
+.women-safety-action span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.helpline-name,
+.women-safety-action strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.helpline-note,
+.women-safety-action small {
+  font-size: 11px;
+  color: #9d4b74;
+}
+
+.helpline-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #be185d;
+}
+
+.women-safety-action.ncw {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 232, 243, 0.86));
+}
+
+.women-safety-action.evidence {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 223, 236, 0.88));
+}
+
+.women-safety-action.portal {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 240, 246, 0.92));
+}
+
+@media (max-width: 768px) {
+  .women-safety-trigger {
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .women-safety-trigger-subtitle {
+    display: none;
+  }
+
+  .women-safety-menu {
+    width: min(92vw, 390px);
+    right: -36px;
+    max-height: calc(100vh - 80px);
+  }
+}

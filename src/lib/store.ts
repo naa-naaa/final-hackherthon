@@ -7,6 +7,9 @@ const LS_INCIDENTS_KEY = 'cybershield_incidents';
 const LS_NOTIFICATIONS_KEY = 'cybershield_notifications';
 const LS_STRIKES_KEY = 'cybershield_strikes';
 const LS_WARNING_COUNT_KEY = 'cybershield_warnings';
+const LS_HARMFUL_SENT_COUNT_KEY = 'cybershield_harmful_sent_count';
+const LS_RESTRICTIONS_KEY = 'cybershield_restrictions';
+const RESTRICTED_ATTEMPT_CHANNEL = 'cybershield_restricted_attempts';
 
 function loadFromStorage<T>(key: string): T[] {
   try {
@@ -60,6 +63,81 @@ export function setWarningCount(user: string, count: number) {
   } catch { /* ignore */ }
 }
 
+export function getHarmfulSentCount(user: string): number {
+  try {
+    const map = JSON.parse(localStorage.getItem(LS_HARMFUL_SENT_COUNT_KEY) || '{}');
+    return map[user] || 0;
+  } catch { return 0; }
+}
+
+export function setHarmfulSentCount(user: string, count: number) {
+  try {
+    const map = JSON.parse(localStorage.getItem(LS_HARMFUL_SENT_COUNT_KEY) || '{}');
+    map[user] = Math.max(0, count);
+    localStorage.setItem(LS_HARMFUL_SENT_COUNT_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+}
+
+export function restrictUserForHours(user: string, hours: number = 24) {
+  try {
+    const map = JSON.parse(localStorage.getItem(LS_RESTRICTIONS_KEY) || '{}');
+    map[user] = Date.now() + hours * 60 * 60 * 1000;
+    localStorage.setItem(LS_RESTRICTIONS_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+}
+
+export function getUserRestriction(user: string): { restricted: boolean; remainingMs: number } {
+  try {
+    const map = JSON.parse(localStorage.getItem(LS_RESTRICTIONS_KEY) || '{}');
+    const until = Number(map[user] || 0);
+    if (!until) return { restricted: false, remainingMs: 0 };
+    const remainingMs = Math.max(0, until - Date.now());
+    if (remainingMs <= 0) {
+      delete map[user];
+      localStorage.setItem(LS_RESTRICTIONS_KEY, JSON.stringify(map));
+      return { restricted: false, remainingMs: 0 };
+    }
+    return { restricted: true, remainingMs };
+  } catch {
+    return { restricted: false, remainingMs: 0 };
+  }
+}
+
+export function publishRestrictedAttempt(blockedUser: string, victimUser: string) {
+  try {
+    const bc = new BroadcastChannel(RESTRICTED_ATTEMPT_CHANNEL);
+    bc.postMessage({
+      type: 'restricted_attempt',
+      blockedUser,
+      victimUser,
+      timestamp: new Date().toISOString(),
+    });
+    bc.close();
+  } catch {
+    /* ignore */
+  }
+}
+
+export function subscribeToRestrictedAttempts(
+  callback: (payload: { blockedUser: string; victimUser: string; timestamp: string }) => void
+): () => void {
+  const bc = new BroadcastChannel(RESTRICTED_ATTEMPT_CHANNEL);
+  const handler = (event: MessageEvent) => {
+    if (event.data?.type === 'restricted_attempt') {
+      callback({
+        blockedUser: event.data.blockedUser,
+        victimUser: event.data.victimUser,
+        timestamp: event.data.timestamp,
+      });
+    }
+  };
+  bc.addEventListener('message', handler);
+  return () => {
+    bc.removeEventListener('message', handler);
+    bc.close();
+  };
+}
+
 // ── Notification persistence ──
 export function getPersistedNotifications(): Notification[] {
   return loadFromStorage<Notification>(LS_NOTIFICATIONS_KEY);
@@ -83,6 +161,8 @@ const VALID_USERS: Record<string, string> = {
   kavitha: 'kavitha',
   admin: 'admin123',
 };
+
+const WOMEN_USERS = new Set(['priya', 'deepa', 'ananya', 'meera', 'kavitha']);
 
 // ── Groups ──
 const GROUPS: Group[] = [
@@ -126,6 +206,10 @@ export function getCurrentUser(): string | null {
 
 export function getOtherUsers(currentUser: string): string[] {
   return Object.keys(VALID_USERS).filter(u => u !== currentUser && u !== 'admin');
+}
+
+export function isWomenUser(username: string): boolean {
+  return WOMEN_USERS.has(username.toLowerCase());
 }
 
 // ── Message Buffer Detection ──
@@ -275,6 +359,17 @@ export async function getGroupMessages(groupId: string): Promise<Message[]> {
 }
 
 export async function sendMessage(message: Omit<Message, 'id'>): Promise<Message> {
+  const senderRestriction = getUserRestriction(message.sender);
+  if (senderRestriction.restricted) {
+    throw new Error('SENDER_RESTRICTED_24H');
+  }
+  if (!message.group_id) {
+    const receiverRestriction = getUserRestriction(message.receiver);
+    if (receiverRestriction.restricted) {
+      throw new Error('RECEIVER_RESTRICTED_24H');
+    }
+  }
+
   const newMsg: Message = {
     ...message,
     id: crypto.randomUUID(),

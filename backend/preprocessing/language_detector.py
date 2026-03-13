@@ -23,8 +23,11 @@ class LanguageDetector:
         "seri", "po", "va", "vaa", "illa", "illaya",
         "avan", "aval", "nee", "naan", "yaar", "yaaru",
         "sollu", "paru", "paaru",
-        # Common verbs
+        "unna", "unda", "unga", "ungalukku",
+        # Common verbs / phrases
         "saptiya", "sapdiya", "saptu", "vantiya", "vandiya",
+        "panven", "pannuven", "paarunga", "vaanga", "vaanganum",
+        "solren", "soluven", "theriyuma", "theriyum",
         # Insults & abuse triggers
         "loosu", "poda", "podi", "mokka", "vera",
         "naaye", "naayi", "naai",          # dog (offensive)
@@ -32,13 +35,22 @@ class LanguageDetector:
         "otha", "oothu",                    # expletive
         "thevdiya", "thevdia", "thevidiya", # offensive (women)
         "pottai",                           # offensive
-        "sunni", "pundai", "koothi",        # vulgar abuses
+        "sunni", "pundai", "punda", "punde", "koothi",  # vulgar abuses
         "saava", "saavkaari", "saavakaari", # death-threat slang
         "poolai", "poolu",                  # vulgar
+        "thayoli", "thayiru",              # mother insult
+        "mayiru",                           # vulgar insult
+        "oombu", "oomba", "sappi",          # vulgar verbs
+        "kundi", "soothu",                  # vulgar nouns
+        "lavadai", "lavada",                # insult
         # Threatening verbs
         "adikiren", "adichu", "adikuven",   # will hit/beat
         "kolluven", "kollu",                # will kill
+        "vettuven", "vetti",                # will slash
+        "kuthiven", "kuthi",                # will stab
         "mokkai", "mokkapu",
+        # Blackmail cues (Tanglish context)
+        "padam", "pathiram",
     }
 
     def detect_script(self, text: str):

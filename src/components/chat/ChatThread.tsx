@@ -191,7 +191,7 @@ export default function ChatThread({ messages, currentUser }: ChatThreadProps) {
                           <p className="blurred-label">
                             {isBlocked 
                               ? '🚫 This message was blocked by CyberShield' 
-                              : 'A message was hidden by CyberShield'}
+                              : 'This message contains harmful words. Do you want to read it?'}
                           </p>
                         </div>
                         <button

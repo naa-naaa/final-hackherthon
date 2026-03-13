@@ -1,6 +1,7 @@
 import { Shield, Bell, LogOut, Zap, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../../lib/store';
+import { isWomenUser, logout } from '../../lib/store';
+import WomenSafetyDropdown from './WomenSafetyDropdown';
 import './ChatHeader.css';
 
 interface ChatHeaderProps {
@@ -71,6 +72,10 @@ export default function ChatHeader({
       </div>
 
       <div className="chat-header-right">
+        {isWomenUser(currentUser) && (
+          <WomenSafetyDropdown currentUser={currentUser} />
+        )}
+
         {strikeCount >= 3 ? (
           <span className="strike-badge strike-restricted animate-flash">
             <AlertCircle size={14} />

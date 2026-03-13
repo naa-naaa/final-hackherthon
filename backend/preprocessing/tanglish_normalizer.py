@@ -26,12 +26,28 @@ class TanglishNormalizer:
         "pottai": "prostitute",
         "sunni": "dick",
         "pundai": "pussy",
+        "punda": "pussy",
+        "punde": "pussy",
         "koothi": "whore",
         "saava": "death",
         "saavkaari": "death threat",
         "saavakaari": "death threat",
         "poolai": "pussy",
         "poolu": "pussy",
+        # Additional abuses commonly missed
+        "thayoli": "son of a whore",
+        "thayiru": "bastard",  # colloquial insult usage
+        "mayiru": "pubic hair",   # vulgar insult
+        "oombu": "suck it",       # vulgar
+        "oomba": "suck it",
+        "sappi": "suck it",
+        "kundi": "ass",
+        "soothu": "ass",
+        "lavadai": "bastard",
+        "lavada": "bastard",
+        "ottai": "bastard",
+        "ootai": "bastard",
+        "puluthi": "groin insult",
         # Threats
         "adikiren": "will beat",
         "adichu": "beat",
@@ -39,6 +55,17 @@ class TanglishNormalizer:
         "kolluven": "will kill",
         "kollu": "kill",
         "kill": "kill",
+        "vettuven": "will slash",
+        "vetti": "slash",
+        "kuthiven": "will stab",
+        "kuthi": "stab",
+        "jalra": "thrash",
+        # Blackmail / extortion cues
+        "expose": "expose",
+        "padam": "photos",
+        "video": "video",
+        "leak": "leak",
+        "share": "share",
     }
 
     def __init__(self):
@@ -80,12 +107,20 @@ class TanglishNormalizer:
                     converted.append(word)
             return " ".join(converted)
         
-        # Fallback: manual word replacement
-        words = text.lower().split()
+        # Fallback: apply manual word mapping
+        return self.apply_fallback_map(text)
+
+    def apply_fallback_map(self, text: str) -> str:
+        """
+        Replace known Tanglish abusive/threat words with their English equivalents.
+        Safe to call on already-translated text as a safety-net pass.
+        Words not in the map are left unchanged.
+        """
+        words = text.split()
         converted = []
         for word in words:
-            # Remove punctuation for lookup
-            clean_word = ''.join(c for c in word if c.isalnum())
+            # Strip punctuation for lookup, preserve original casing for non-matches
+            clean_word = ''.join(c for c in word.lower() if c.isalnum())
             if clean_word in self.TANGLISH_FALLBACK_MAP:
                 converted.append(self.TANGLISH_FALLBACK_MAP[clean_word])
             else:
