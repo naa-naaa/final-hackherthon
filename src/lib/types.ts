@@ -78,6 +78,32 @@ export interface VoiceAnalyzeResponse {
   women_risk_flag?: boolean;
 }
 
+export interface ImageAnalyzeResponse {
+  action: 'allow' | 'alert' | 'block';
+  harm_score: number;
+  category: string;
+  severity: string;
+  explanation: string;
+  detected_text: string | null;
+  visual_flags: {
+    has_violence: boolean;
+    has_weapons: boolean;
+    has_hate_content: boolean;
+    has_bullying: boolean;
+  };
+  nsfw_flags: {
+    is_explicit: boolean;
+    severity: number;
+    body_parts: string[];
+  };
+  agent_scores: {
+    i1_text_harm: number;
+    i2_visual_harm: number;
+    i3_nsfw_severity: number;
+  };
+  incident_id: string;
+}
+
 export interface Notification {
   id: string;
   message: string;

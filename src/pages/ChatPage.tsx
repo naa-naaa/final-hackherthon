@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, getOtherUsers, getMessages, getGroupMessages, sendMessage, subscribeToMessages, createIncident, generateNotification, detectSplitMessage, getPersistedStrikes, setPersistedStrikes, getWarningCount, setWarningCount, getPersistedNotifications, persistNotifications } from '../lib/store';
 import { analyzeMessage, analyzeVoice } from '../lib/analyze';
-import { Message, AnalyzeResponse, VoiceAnalyzeResponse, Notification, ChatTarget } from '../lib/types';
+import { analyzeImage } from '../lib/analyzeImage';
+import { Message, AnalyzeResponse, VoiceAnalyzeResponse, ImageAnalyzeResponse, Notification, ChatTarget } from '../lib/types';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatThread from '../components/chat/ChatThread';
 import ChatInput from '../components/chat/ChatInput';
@@ -21,6 +22,7 @@ export default function ChatPage() {
   const [shieldOffline, setShieldOffline] = useState(false);
   const [strikeCount, setStrikeCount] = useState(() => currentUser ? getPersistedStrikes(currentUser) : 0);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>(() => getPersistedNotifications());
   const [showNotifications, setShowNotifications] = useState(false);
@@ -28,13 +30,13 @@ export default function ChatPage() {
   
   // Alert banner state
   const [alertData, setAlertData] = useState<{
-    response: AnalyzeResponse;
+    response: AnalyzeResponse | ImageAnalyzeResponse;
     text: string;
   } | null>(null);
   
   // Block overlay state
   const [blockData, setBlockData] = useState<{
-    response: AnalyzeResponse;
+    response: AnalyzeResponse | ImageAnalyzeResponse;
     strikeNum: number;
   } | null>(null);
 
@@ -475,6 +477,156 @@ export default function ChatPage() {
     }
   }, [currentUser, activeChat, shieldOn, messages, strikeCount, cooldown, checkLocalHarmful, notifications]);
 
+  // ── Image message handler ──
+  const handleSendImage = useCallback(async (imageFile: File) => {
+    if (!currentUser || !activeChat || cooldown > 0) return;
+
+    const receiver = activeChat.id;
+    const timestamp = new Date().toISOString();
+    const groupId = activeChat.type === 'group' ? activeChat.id : undefined;
+    const threadId = activeChat.type === 'group' ? activeChat.id : `conv_${currentUser}_${receiver}`;
+
+    if (!shieldOn) {
+      // Shield off → send image directly without analysis
+      const imageDataUrl = await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result as string);
+        r.onerror = rej;
+        r.readAsDataURL(imageFile);
+      });
+
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: '[Image]',
+        status: 'sent',
+        harm_score: null,
+        category: null,
+        timestamp,
+        file_url: imageDataUrl,
+        file_name: imageFile.name,
+        group_id: groupId,
+      });
+      return;
+    }
+
+    // Shield ON → analyze image
+    setAnalyzingImage(true);
+    const response = await analyzeImage(imageFile, currentUser, receiver, threadId);
+    setAnalyzingImage(false);
+
+    const imageDataUrl = await new Promise<string>((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result as string);
+      r.onerror = rej;
+      r.readAsDataURL(imageFile);
+    });
+
+    if (!response) {
+      // API failed → with shield on, show offline message
+      setShieldOffline(true);
+      setTimeout(() => setShieldOffline(false), 5000);
+      
+      // Don't send unscreened
+      return;
+    }
+
+    // Create incident
+    await createIncident({
+      sender: currentUser,
+      receiver,
+      content: response.detected_text || '[Image]',
+      action: response.action,
+      harm_score: response.harm_score,
+      category: response.category,
+      agent_t1: response.agent_scores.i1_text_harm,
+      agent_t2: response.agent_scores.i2_visual_harm,
+      agent_t3: response.agent_scores.i3_nsfw_severity,
+      timestamp,
+    });
+
+    if (response.action === 'allow') {
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: '[Image]',
+        status: 'sent',
+        harm_score: response.harm_score,
+        category: response.category,
+        timestamp,
+        file_url: imageDataUrl,
+        file_name: imageFile.name,
+        group_id: groupId,
+      });
+    } else if (response.action === 'alert') {
+      const warnings = getWarningCount(currentUser);
+      if (warnings >= 3) {
+        // Already warned enough — shadow ban
+        const newStrike = strikeCount + 1;
+        setStrikeCount(newStrike);
+        setPersistedStrikes(currentUser, newStrike);
+        setBlockData({ response, strikeNum: newStrike });
+        setCooldown(30);
+
+        await sendMessage({
+          sender: currentUser,
+          receiver,
+          content: '[Image]',
+          status: 'sent',
+          harm_score: response.harm_score,
+          category: response.category,
+          timestamp,
+          group_id: groupId,
+          shadow_banned: true,
+        });
+
+        const newNotifs = [
+          generateNotification('block', currentUser, receiver, response.category, newStrike),
+          ...notifications,
+        ];
+        setNotifications(newNotifs);
+        persistNotifications(newNotifs);
+      } else {
+        // First/second warning
+        setWarningCount(currentUser, warnings + 1);
+        setAlertData({ response, text: `[Image uploaded by ${currentUser}]` });
+
+        const newNotifs = [
+          generateNotification('alert', currentUser, receiver, response.category, strikeCount),
+          ...notifications,
+        ];
+        setNotifications(newNotifs);
+        persistNotifications(newNotifs);
+      }
+    } else if (response.action === 'block') {
+      // Immediate block
+      const newStrike = strikeCount + 1;
+      setStrikeCount(newStrike);
+      setPersistedStrikes(currentUser, newStrike);
+      setBlockData({ response, strikeNum: newStrike });
+      setCooldown(30);
+
+      await sendMessage({
+        sender: currentUser,
+        receiver,
+        content: '[Image]',
+        status: 'sent',
+        harm_score: response.harm_score,
+        category: response.category,
+        timestamp,
+        group_id: groupId,
+        shadow_banned: true,
+      });
+
+      const newNotifs = [
+        generateNotification('block', currentUser, receiver, response.category, newStrike),
+        ...notifications,
+      ];
+      setNotifications(newNotifs);
+      persistNotifications(newNotifs);
+    }
+  }, [currentUser, activeChat, shieldOn, strikeCount, cooldown, notifications, checkLocalHarmful]);
+
   // ── Voice message handler ──
   const handleVoiceSend = useCallback(async (audioBlob: Blob, duration: number) => {
     if (!currentUser || !activeChat || cooldown > 0) return;
@@ -780,9 +932,10 @@ export default function ChatPage() {
                   handleSend(t, f, fn);
                 }}
                 onSendVoice={handleVoiceSend}
+                onSendImage={handleSendImage}
                 disabled={cooldown > 0}
                 cooldown={cooldown}
-                analyzing={analyzing}
+                analyzing={analyzing || analyzingImage}
                 editText={draftText}
               />
             </>

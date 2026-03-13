@@ -5,6 +5,7 @@ import './ChatInput.css';
 interface ChatInputProps {
   onSend: (text: string, fileUrl?: string, fileName?: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
+  onSendImage: (file: File) => void;
   disabled: boolean;
   cooldown: number;
   analyzing: boolean;
@@ -14,6 +15,7 @@ interface ChatInputProps {
 export default function ChatInput({
   onSend,
   onSendVoice,
+  onSendImage,
   disabled,
   cooldown,
   analyzing,
@@ -24,6 +26,7 @@ export default function ChatInput({
   const [fileDataUrl, setFileDataUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Voice recording state
   const [recording, setRecording] = useState(false);
@@ -81,6 +84,23 @@ export default function ChatInput({
       setFileDataUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Images should be analyzed immediately, not attached like files
+    if (file.type.startsWith('image/')) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image size must be under 10 MB');
+        return;
+      }
+      onSendImage(file);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    } else {
+      alert('Please select an image file');
+    }
   };
 
   // ── Voice recording ──
@@ -224,6 +244,24 @@ export default function ChatInput({
               onChange={handleFileSelect}
               style={{ display: 'none' }}
               accept="image/*,.pdf,.doc,.docx,.txt,.mp4,.webm"
+            />
+            
+            <button
+              type="button"
+              className="attach-btn"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={disabled || analyzing}
+              aria-label="Send image"
+              title="Send image for analysis"
+            >
+              <ImageIcon size={18} />
+            </button>
+            <input
+              type="file"
+              ref={imageInputRef}
+              onChange={handleImageSelect}
+              style={{ display: 'none' }}
+              accept="image/*"
             />
             
             <input

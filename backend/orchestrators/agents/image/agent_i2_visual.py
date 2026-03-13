@@ -50,18 +50,57 @@ class AgentI2Visual:
                 logits = outputs.logits_per_image[0]
                 probs = torch.softmax(logits, dim=0).cpu().numpy()
 
-            harm_score = float(np.mean(probs[:len(self.HARM_PROMPTS)]))
-            safe_score = float(np.mean(probs[len(self.HARM_PROMPTS):]))
+            harm_probs = probs[:len(self.HARM_PROMPTS)]
+            safe_probs = probs[len(self.HARM_PROMPTS):]
 
-            top_idx = int(np.argmax(probs[:len(self.HARM_PROMPTS)]))
-            top_category = self.HARM_PROMPTS[top_idx]
+            top_harm_idx = int(np.argmax(harm_probs))
+            top_harm_prob = float(harm_probs[top_harm_idx])
+            top_safe_idx = int(np.argmax(safe_probs))
+            top_safe_prob = float(safe_probs[top_safe_idx])
 
+            # Calibrated visual score: compare strongest harm cue against strongest safe cue.
+            # Mean-over-prompts was too conservative and let bullying images pass as "allow".
+            harm_vs_safe = top_harm_prob / max(top_harm_prob + top_safe_prob, 1e-6)
+            safe_global_idx = len(self.HARM_PROMPTS) + top_safe_idx
+            logit_margin = float(logits[top_harm_idx] - logits[safe_global_idx])
+            margin_score = float(1.0 / (1.0 + np.exp(-logit_margin)))
+
+            harm_score = float(np.clip(0.65 * harm_vs_safe + 0.35 * margin_score, 0.0, 1.0))
+            safe_score = float(1.0 - harm_score)
+
+            top_category = self.HARM_PROMPTS[top_harm_idx]
+
+            # Detect specific harm categories using a relative threshold from top harm prompt.
+            detected_categories = []
+            category_scores = {}
+            for idx, prompt in enumerate(self.HARM_PROMPTS):
+                score = float(harm_probs[idx])
+                if score >= max(0.12, top_harm_prob * 0.75):
+                    # Extract category from prompt
+                    if "violence" in prompt:
+                        detected_categories.append("violence")
+                        category_scores["violence"] = score
+                    elif "weapon" in prompt:
+                        detected_categories.append("weapons")
+                        category_scores["weapons"] = score
+                    elif "bullying" in prompt:
+                        detected_categories.append("bullying")
+                        category_scores["bullying"] = score
+                    elif "hate" in prompt:
+                        detected_categories.append("hate")
+                        category_scores["hate"] = score
+                    elif "humiliation" in prompt:
+                        detected_categories.append("mockery")
+                        category_scores["mockery"] = score
+            
             return {
                 "agent": "I2_visual",
                 "score": harm_score,
                 "visual_harm_score": harm_score,
                 "safe_score": safe_score,
                 "top_category": top_category,
+                "categories": detected_categories,
+                "category_scores": category_scores,
                 "explanation": f"Visual harm probability: {harm_score:.2f}",
             }
         except Exception as e:

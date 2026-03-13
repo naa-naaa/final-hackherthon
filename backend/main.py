@@ -15,6 +15,7 @@ load_dotenv()
 
 from orchestrators.text_orchestrator import TextOrchestrator
 from orchestrators.voice_orchestrator import VoiceOrchestrator
+from orchestrators.image_orchestrator import ImageOrchestrator
 from db.postgres import get_pool, close_pool, execute, fetch_one, fetch_all
 from db.queries import (
     insert_incident, get_incidents, get_all_users,
@@ -61,6 +62,7 @@ app.add_middleware(
 
 text_orchestrator = TextOrchestrator()
 voice_orchestrator = VoiceOrchestrator(text_orchestrator)
+image_orchestrator = ImageOrchestrator(text_orchestrator)
 women_router = WomenSafetyRouter()
 dlp_scanner = DLPScanner()
 ids_monitor = IDSMonitor()
@@ -91,6 +93,19 @@ class AnalyzeResponse(BaseModel):
     agent_scores: dict
     women_risk_flag: bool
     victim_distress_flag: bool
+    incident_id: str
+
+
+class ImageAnalyzeResponse(BaseModel):
+    action: str
+    harm_score: float
+    category: str
+    severity: str
+    explanation: str
+    detected_text: Optional[str]
+    visual_flags: dict
+    nsfw_flags: dict
+    agent_scores: dict
     incident_id: str
 
 
@@ -341,45 +356,85 @@ async def analyze_voice(
 
 
 # ── IMAGE WEBHOOK ─────────────────────────────────────────────────
-@app.post("/analyze/image")
+@app.post("/analyze/image", response_model=ImageAnalyzeResponse)
 async def analyze_image(
     image: UploadFile = File(...),
     sender: str = Form(...),
     receiver: str = Form(...),
+    thread_id: str = Form("default"),
     platform: str = Form("SafeChat"),
 ):
-    from orchestrators.agents.image.agent_i1_ocr import AgentI1OCR
-    from orchestrators.agents.image.agent_i3_nsfw import AgentI3NSFW
-
+    """
+    Analyze image for harmful content.
+    - I1: OCR text extraction → fed to TextOrchestrator
+    - I2: Visual harm detection (CLIP)
+    - I3: NSFW/explicit content detection
+    """
     image_bytes = await image.read()
-    i1 = AgentI1OCR()
-    i3 = AgentI3NSFW()
-
-    ocr_result, nsfw_result = await asyncio.gather(i1.analyze(image_bytes), i3.analyze(image_bytes))
-
-    text_result = {"harm_score": 0.0, "category": "safe", "severity": "none",
-                   "action": "allow", "agent_scores": {}, "explanation": ""}
-    if ocr_result.get("has_text"):
-        text_result = await text_orchestrator.analyze(text=ocr_result["extracted_text"], sender=sender)
-
-    fused_score = max(text_result["harm_score"], nsfw_result["score"])
-    women_risk = nsfw_result.get("women_risk_flag", False) or text_result.get("women_risk_flag", False)
-    action = "allow" if fused_score < 0.40 else "alert" if fused_score < 0.80 else "block"
-
+    timestamp = datetime.utcnow().isoformat() + "Z"
+    
+    # Get strike count for context
+    strike_count = await get_strike_count(sender)
+    
+    # Run image analysis through orchestrator
+    result = await image_orchestrator.analyze(
+        image_bytes=image_bytes,
+        sender=sender,
+        receiver=receiver,
+        thread_id=thread_id,
+        timestamp=timestamp,
+        strike_count=strike_count,
+    )
+    
+    # Create incident record
     incident_data = {
-        "sender": sender, "receiver": receiver,
-        "content": ocr_result.get("extracted_text", "[image]"),
-        "medium": "image", "action": action, "harm_score": fused_score,
-        "category": "explicit" if nsfw_result["is_explicit"] else text_result.get("category", "safe"),
-        "severity": text_result.get("severity", "none"),
-        "agent_t1": nsfw_result["score"], "agent_t2": 0.0, "agent_t3": text_result["harm_score"],
-        "explanation": f"NSFW:{nsfw_result['is_explicit']} | OCR:{ocr_result.get('has_text',False)}",
-        "platform": platform, "women_risk_flag": women_risk,
+        "sender": sender,
+        "receiver": receiver,
+        "content": result.get("detected_text") or "[image]",
+        "medium": "image",
+        "action": result["action"],
+        "harm_score": result["harm_score"],
+        "category": result["category"],
+        "severity": result["severity"],
+        "agent_t1": result["agent_scores"]["i1_text_harm"],
+        "agent_t2": result["agent_scores"]["i2_visual_harm"],
+        "agent_t3": result["agent_scores"]["i3_nsfw_severity"],
+        "explanation": result["explanation"],
+        "platform": platform,
+        "women_risk_flag": result["nsfw_flags"]["is_explicit"],
+        "timestamp": timestamp,
     }
     incident_id = await insert_incident(incident_data)
-    return {"action": action, "harm_score": round(fused_score, 3),
-            "extracted_text": ocr_result.get("extracted_text", ""),
-            "is_explicit": nsfw_result["is_explicit"], "incident_id": incident_id}
+    
+    # Handle action: alert or block
+    if result["action"] == "alert":
+        await create_notification(
+            target_user=receiver,
+            ntype="alert",
+            title="⚠️ Image Message Flagged",
+            body=f"CyberShield flagged an image from {sender}",
+        )
+    elif result["action"] == "block":
+        await increment_strike(sender, incident_id)
+        await create_notification(
+            target_user=receiver,
+            ntype="block",
+            title="🛡️ Image Message Protected",
+            body=f"CyberShield blocked an image from {sender}",
+        )
+    
+    return ImageAnalyzeResponse(
+        action=result["action"],
+        harm_score=result["harm_score"],
+        category=result["category"],
+        severity=result["severity"],
+        explanation=result["explanation"],
+        detected_text=result.get("detected_text"),
+        visual_flags=result["visual_flags"],
+        nsfw_flags=result["nsfw_flags"],
+        agent_scores=result["agent_scores"],
+        incident_id=incident_id,
+    )
 
 
 # ── ADMIN ENDPOINTS ───────────────────────────────────────────────
